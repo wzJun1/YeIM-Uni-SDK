@@ -1,0 +1,13 @@
+{
+	"name": "yeim-uni-sdk",
+	"version": "1.0.0",
+	"description": "",
+	"main": "webpack.config.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "webpack --mode development",
+		"build": "webpack --mode production"
+	},
+	"author": "wzjun1",
+	"license": "ISC"
+}
