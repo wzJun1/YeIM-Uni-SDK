@@ -11,9 +11,9 @@ import {
  * @param {Object} msg
  */
 function log(level, msg) {
-	if (instance.logLevel == 0) {
+	if (instance.defaults.logLevel == 0) {
 		console.log("【YeIMUniSDK Log】", msg)
-	} else if (instance.logLevel == 2) {
+	} else if (instance.defaults.logLevel == 2) {
 		return;
 	} else {
 		if (level == 1) {

@@ -44,17 +44,16 @@ class YeIMUniSDK {
 			reConnectInterval: 3000,
 			//心跳时间间隔(默认30s)
 			heartInterval: 30000,
+			/**
+			 * 	日志等级
+			 *  0 普通日志，日志量较多，接入时建议使用
+			 *	1 关键性日志，日志量较少，生产环境时建议使用 
+			 *	2 无日志级别，SDK 将不打印任何日志
+			 */
+			logLevel: 0,
 			//IM参数
 			...options
 		};
-
-		/**
-		 * 	日志等级
-		 *  0 普通日志，日志量较多，接入时建议使用
-		 *	1 关键性日志，日志量较少，生产环境时建议使用 
-		 *	2 无日志级别，SDK 将不打印任何日志
-		 */
-		this.logLevel = 0;
 
 		//是否首次连接
 		this.firstConnect = true;
@@ -102,14 +101,13 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.createTextMessage = createTextMessage;
 		YeIMUniSDK.prototype.createCustomMessage = createCustomMessage;
 
-
 		YeIMUniSDK.prototype.sendMessage = sendMessage;
 		YeIMUniSDK.prototype.getMessageList = getMessageList;
 
 		YeIMUniSDK.prototype.getConversationList = getConversationListFromLocal;
 		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo;
 
-		YeIMUniSDK.prototype.emit = emit;
+		//YeIMUniSDK.prototype.emit = emit;
 		YeIMUniSDK.prototype.addEventListener = addEventListener;
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener;
 		console.log("============= YeIMUniSDK 初始化成功！=============")

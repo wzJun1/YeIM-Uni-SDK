@@ -7,7 +7,5 @@ module.exports = {
 		libraryTarget: 'umd'
 	},
 	mode: 'production',
-	plugins: [
-
-	]
+	plugins: []
 }

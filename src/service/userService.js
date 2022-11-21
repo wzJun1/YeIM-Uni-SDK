@@ -7,8 +7,6 @@ import {
 	errHandle
 } from '../func/callback';
 
-
-
 /**
  * 更新用户资料
  * @param {Object} options
