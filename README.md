@@ -16,9 +16,11 @@
 
 下载后端源码：[YeIM-Uni-Server](https://github.com/wzJun1/YeIM-Uni-Server) [https://github.com/wzJun1/YeIM-Uni-Server](https://github.com/wzJun1/YeIM-Uni-Server)
 
-创建数据库，导入源码中的：database.sql，修改application.properties中配置MySQL、Redis相关参数
+创建数据库，导入源码中的：database.sql，修改application.properties中配置MySQL、Redis、Storage相关参数
 
 导入项目到IntelliJ IDEA进行开发测试
+
+注：1.0.2版本升级后加入媒体消息，接入COS（腾讯云对象存储及腾讯云万象媒体处理服务），以后会对接本地和更多公有云对象存储（不限于阿里云七牛云等）。COS配置Storage，修改application.properties，请根据自行创建的bucket配置。
 
 ### 1.1 注册用户
 
@@ -68,6 +70,7 @@ import {
 } from './uni_modules/wzJun1-YeIM-Uni-SDK/js_sdk/yeim-uni-sdk.min.js'
 
 //初始化YeIMUniSDK
+uni.$YeIMUniSDKDefines = YeIMUniSDKDefines; // 预定义常量
 uni.$YeIM = YeIMUniSDK.init({
 	baseURL: 'http://192.168.110.101:10010', // YeIMServer http url
 	socketURL: 'ws://192.168.110.101:10010/im', // YeIMServer socket url
@@ -162,12 +165,68 @@ uni.$YeIM = YeIMUniSDK.init({
 		}
 	}); 
 	
+	//创建图片消息（注：图片、语音、视频等媒体消息，需后端接入COS（腾讯云对象存储及腾讯云万象媒体处理服务））
+	let message = uni.$YeIM.createImageMessage({
+		toId: '接收者用户ID',
+		conversationType: uni.$YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE,
+		body: {
+			file: {
+				tempFilePath: '本地图片临时路径',
+				width: '图片宽度',
+				height: '图片高度',
+			}
+		},
+		onProgress: (progress) => {
+			console.log('上传进度' + progress.progress);
+			console.log('已经上传的数据长度' + progress.totalBytesSent);
+			console.log('预期需要上传的数据总长度' + progress.totalBytesExpectedToSend);
+		}
+	});
+	
+	//创建语音消息（注：图片、语音、视频等媒体消息，需后端接入COS（腾讯云对象存储及腾讯云万象媒体处理服务））
+	let message = uni.$YeIM.createAudioMessage({
+		toId: '接收者用户ID',
+		conversationType: uni.$YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE,
+		body: {
+			file: {
+				tempFilePath: '', // 本地录音文件
+				duration: 0, // 录音时长
+			}
+		},
+		onProgress: (progress) => {
+			console.log('上传进度' + progress.progress);
+			console.log('已经上传的数据长度' + progress.totalBytesSent);
+			console.log('预期需要上传的数据总长度' + progress.totalBytesExpectedToSend);
+		}
+	});
+	
+	//创建小视频消息（注：图片、语音、视频等媒体消息，需后端接入COS（腾讯云对象存储及腾讯云万象媒体处理服务））
+	let message = uni.$YeIM.createVideoMessage({
+		toId: '接收者用户ID',
+		conversationType: uni.$YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE,
+		body: {
+			file: {
+				tempFilePath: '本地小视频文件临时路径',
+				width: '视频宽度',
+				height: '视频高度',
+				duration: 1 // 视频时长，秒
+			}
+		},
+		onProgress: (progress) => {
+			console.log(progress)
+			console.log('上传进度' + progress.progress);
+			console.log('已经上传的数据长度' + progress.totalBytesSent);
+			console.log('预期需要上传的数据总长度' + progress.totalBytesExpectedToSend);
+		}
+	});
+	
 	//创建自定义消息
 	// let message = uni.$YeIM.createCustomMessage({
 	// 	toId: '接收者用户ID',
 	// 	conversationType: uni.$YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE,
 	// 	body: "自定义消息对象"
 	// }); 
+	
 	
 	//发送消息
 	uni.$YeIM.sendMessage({

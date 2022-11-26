@@ -14,6 +14,9 @@ YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 'group'; //群聊
 //消息类型
 YeIMUniSDKDefines.MESSAGE_TYPE = {};
 YeIMUniSDKDefines.MESSAGE_TYPE.TEXT = 'text'; //文本消息
+YeIMUniSDKDefines.MESSAGE_TYPE.IMAGE = 'image'; //图片消息
+YeIMUniSDKDefines.MESSAGE_TYPE.AUDIO = 'audio'; //语音消息
+YeIMUniSDKDefines.MESSAGE_TYPE.VIDEO = 'video'; //小视频消息
 YeIMUniSDKDefines.MESSAGE_TYPE.CUSTOM = 'custom'; //自定义消息
 
 export {

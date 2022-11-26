@@ -14,6 +14,8 @@ import {
 import log from './func/log';
 import {
 	createTextMessage,
+	createImageMessage,
+	createVideoMessage,
 	createCustomMessage,
 	sendMessage,
 	saveMessage,
@@ -24,6 +26,9 @@ import {
 	getConversationListFromLocal,
 	getConversationListFromCloud
 } from './service/conversationService'
+import {
+	getMediaUploadParams
+} from './service/uploadService'
 import {
 	updateUserInfo
 } from './service/userService'
@@ -85,6 +90,9 @@ class YeIMUniSDK {
 		this.userId = undefined;
 		//登陆token
 		this.token = undefined;
+
+		//媒体上传参数
+		this.mediaUploadParams = {};
 	}
 
 	/**
@@ -97,17 +105,14 @@ class YeIMUniSDK {
 			return instance;
 		}
 		instance = new YeIMUniSDK(options);
-
 		YeIMUniSDK.prototype.createTextMessage = createTextMessage;
+		YeIMUniSDK.prototype.createImageMessage = createImageMessage;
+		YeIMUniSDK.prototype.createVideoMessage = createVideoMessage;
 		YeIMUniSDK.prototype.createCustomMessage = createCustomMessage;
-
 		YeIMUniSDK.prototype.sendMessage = sendMessage;
 		YeIMUniSDK.prototype.getMessageList = getMessageList;
-
 		YeIMUniSDK.prototype.getConversationList = getConversationListFromLocal;
 		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo;
-
-		//YeIMUniSDK.prototype.emit = emit;
 		YeIMUniSDK.prototype.addEventListener = addEventListener;
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener;
 		console.log("============= YeIMUniSDK 初始化成功！=============")
@@ -181,6 +186,8 @@ class YeIMUniSDK {
 				log(1, "IMServer登陆成功，登陆用户：" + options.userId)
 				//1.登陆成功后从服务端获取一下全部会话 
 				getConversationListFromCloud(1, 100000);
+				//2.获取媒体上传参数
+				getMediaUploadParams();
 				return successHandle(options, "登陆成功", data.data);
 			} else {
 				return errHandle(options, data.message);
