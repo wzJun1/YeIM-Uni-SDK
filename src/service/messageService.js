@@ -29,7 +29,13 @@ import log from '../func/log';
 
 /**
  * 创建文本消息
+ * 
  * @param {Object} options
+ * @param {String} options.toId @description 接受者用户ID
+ * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {String} options.body.text @description 需要发送的文本消息内容
+ * 
+ * @return Message
  */
 function createTextMessage(options) {
 
@@ -63,7 +69,16 @@ function createTextMessage(options) {
 
 /**
  * 创建图片消息
+ * @description 仅支持单张图片
+ * 
  * @param {Object} options
+ * @param {String} options.toId @description 接受者用户ID
+ * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {String} options.body.file.tempFilePath @description 本地图片文件临时路径
+ * @param {Number} options.body.file.width @description 图片宽度
+ * @param {Number} options.body.file.height @description 图片高度
+ * 
+ * @return Message
  */
 function createImageMessage(options) {
 
@@ -116,8 +131,73 @@ function createImageMessage(options) {
 }
 
 /**
- * 创建语音消息
+ * 创建位置消息
+ * 
  * @param {Object} options
+ * @param {String} options.toId @description 接受者用户ID
+ * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {String} options.body.address @description 地址名称
+ * @param {String} options.body.description @description 地址详细描述
+ * @param {Double} options.body.longitude @description 经度
+ * @param {Double} options.body.latitude @description 纬度
+ * 
+ * @return Message
+ */
+function createLocationMessage(options) {
+
+	if (!instance.userId) {
+		return buildErrObject("请登陆后再调用此接口");
+	}
+
+	if (options == null || !options.toId) {
+		return buildErrObject("toId 不能为空");
+	}
+
+	if (!options.conversationType) {
+		return buildErrObject("conversationType 不能为空");
+	}
+
+	if (!options.body.address) {
+		return buildErrObject("address 不能为空");
+	}
+
+	if (!options.body.description) {
+		return buildErrObject("description 不能为空");
+	}
+
+	if (!options.body.longitude) {
+		return buildErrObject("longitude 不能为空");
+	}
+
+	if (!options.body.latitude) {
+		return buildErrObject("latitude 不能为空");
+	}
+
+	let params = {
+		to: options.toId,
+		type: YeIMUniSDKDefines.MESSAGE_TYPE.LOCATION,
+		conversationType: options.conversationType,
+		body: {
+			address: options.body.address,
+			description: options.body.description,
+			longitude: options.body.longitude,
+			latitude: options.body.latitude,
+		}
+	};
+	let message = formatMessage(params);
+	return message;
+}
+
+/**
+ * 创建语音消息
+ * 
+ * @param {Object} options
+ * @param {String} options.toId @description 接受者用户ID
+ * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {String} options.body.file.tempFilePath @description 本地音频文件临时路径
+ * @param {String} options.body.file.duration @description 音频时长，单位秒
+ * 
+ * @return Message
  */
 function createAudioMessage(options) {
 
@@ -164,7 +244,15 @@ function createAudioMessage(options) {
 
 /**
  * 创建小视频消息
+ * 
  * @param {Object} options
+ * @param {String} options.toId @description 接受者用户ID
+ * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {String} options.body.file.tempFilePath @description 本地小视频文件临时路径
+ * @param {Number} options.body.file.width @description 视频宽度
+ * @param {Number} options.body.file.height @description 视频高度
+ * 
+ * @return Message
  */
 function createVideoMessage(options) {
 
@@ -180,7 +268,7 @@ function createVideoMessage(options) {
 		return buildErrObject("conversationType 不能为空");
 	}
 
-	if (!options.body || !options.body.file || !options.body.file.tempFilePath) {
+	if (!options.body || !options.body.file) {
 		return buildErrObject("file 不能为空");
 	}
 
@@ -216,7 +304,14 @@ function createVideoMessage(options) {
 
 /**
  * 创建自定义消息
+ * @description 自定义消息内容放在body字段
+ * 
  * @param {Object} options
+ * @param {String} options.toId @description 接受者用户ID
+ * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {String|Object} options.body @description 自定义消息内容
+ *  
+ * @return Message
  */
 function createCustomMessage(options) {
 
@@ -250,7 +345,12 @@ function createCustomMessage(options) {
 
 /**
  * 发送消息统一入口
+ * @description 为保证双方消息投递可靠性，发送消息使用http协议确保发送成功。
+ * 
  * @param {Object} options
+ * @param {Object} options.message @description 消息
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
  */
 function sendMessage(options) {
 
@@ -261,6 +361,7 @@ function sendMessage(options) {
 	if (!options.message) {
 		return errHandle(options, "message 不能为空");
 	}
+
 	let message = options.message;
 	if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.TEXT) {
 		sendIMMessage(options);
@@ -270,12 +371,19 @@ function sendMessage(options) {
 		sendVideoMessage(options);
 	} else if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.AUDIO) {
 		sendAudioMessage(options);
+	} else if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.LOCATION) {
+		sendIMMessage(options);
 	}
+
 }
 
 /**
  * 发送普通文本消息
+ * 
  * @param {Object} options
+ * @param {Object} options.message @description 消息
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
  */
 function sendIMMessage(options) {
 	let message = options.message;
@@ -303,7 +411,11 @@ function sendIMMessage(options) {
 
 /**
  * 发送图片消息
+ * 
  * @param {Object} options
+ * @param {Object} options.message @description 消息
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
  */
 function sendImageMessage(options) {
 	let message = options.message;
@@ -339,6 +451,9 @@ function sendImageMessage(options) {
  * 发送aac语音消息
  *  
  * @param {Object} options
+ * @param {Object} options.message @description 消息
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
  */
 function sendAudioMessage(options) {
 	let message = options.message;
@@ -365,7 +480,11 @@ function sendAudioMessage(options) {
 
 /**
  * 发送小视频消息
+ * 
  * @param {Object} options
+ * @param {Object} options.message @description 消息
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
  */
 function sendVideoMessage(options) {
 	let message = options.message;
@@ -392,7 +511,8 @@ function sendVideoMessage(options) {
 }
 
 /**
- * 保存消息
+ * 保存消息到本地
+ * 
  * @param {Object} message
  */
 function saveMessage(message) {
@@ -408,8 +528,13 @@ function saveMessage(message) {
 }
 
 /**
- * 获取历史消息
+ * 获取历史消息记录
+ * 
  * @param {Object} options
+ * @param {Number} options.page @description 页码 @default 1
+ * @param {String} options.conversationId @description 会话ID
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
  */
 function getMessageList(options) {
 
@@ -477,9 +602,10 @@ function getMessageList(options) {
 
 }
 
-
 /**
- * 从本地获取消息记录
+ * 从本地缓存获取历史消息记录
+ * 
+ * @param {String} conversationId @description 会话ID
  */
 function getMessageListFromLocal(conversationId) {
 	let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(conversationId);
@@ -492,7 +618,13 @@ function getMessageListFromLocal(conversationId) {
 }
 
 /**
- * 从服务端获取会话列表
+ * 从Server获取历史消息记录
+ * 
+ * @param {Object} options
+ * @param {Number} page @description 页码 @default 1
+ * @param {Object} options.conversationId @description 会话ID
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
  */
 function getMessageListFromCloud(options, page = 1) {
 	uni.request({
@@ -531,6 +663,7 @@ export {
 	createTextMessage,
 	createImageMessage,
 	createVideoMessage,
+	createLocationMessage,
 	createCustomMessage,
 	sendMessage,
 	saveMessage,

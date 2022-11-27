@@ -18,7 +18,7 @@ import CryptoJS from '../utils/CryptoJS';
  * 获取媒体上传参数
  */
 async function getMediaUploadParams() {
-	var [err, res] = await uni.request({
+	let [err, res] = await uni.request({
 		url: instance.defaults.baseURL + "/upload/sign",
 		data: {},
 		method: 'GET',
@@ -33,25 +33,17 @@ async function getMediaUploadParams() {
 		let data = res.data.data;
 		instance.mediaUploadParams = data;
 	}
-	// ,
-	// success: (res) => {
-	// if (!res.data || !res.data.data) {
-	// 	log(1, "媒体上传参数获取失败！");
-	// } else {
-	// 	let data = res.data.data;
-	// 	instance.mediaUploadParams = data;
-	// }
-	// },
-	// fail: (err) => {
-	// 	log(1, err);
-	// }
 }
 
 /**
- * 生成腾讯云cos Authorization
+ * 生成腾讯云COS 对象存储 请求签名 Authorization
+ * @url https://cloud.tencent.com/document/product/436/7778
+ * 
+ * @param {String} method @description 请求方法名称
+ * @param {String} path @description url-param-list
+ * @param {String} headers @description q-header-list
  */
 async function buildCosAuthorization(method, path, headers) {
-
 	let time = parseInt((new Date()).getTime() / 1000) - 1;
 	if (!instance.mediaUploadParams || time > instance.mediaUploadParams.expireTime) {
 		//过期，重新获取
@@ -74,7 +66,77 @@ async function buildCosAuthorization(method, path, headers) {
 }
 
 /**
+ *
+ * 通用上传接口
+ * 外部暴露
+ *
+ * @param {Object} options
+ * @param {String} options.filename @description 文件名称（需带后缀）
+ * @param {String} options.filepath @description 本地文件临时路径
+ * @param {Function} options.onProgress @description 上传进度回调
+ */
+function upload(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	if (!instance.mediaUploadParams) {
+		return log(1, "上传参数获取失败！");
+	}
+
+	let mediaUploadParams = instance.mediaUploadParams;
+	let suffix = options.filename.substring(options.filename.lastIndexOf("."));
+	let filename = md5((new Date()).getTime() + "_" + options.filename) + "_image" + suffix;
+
+	let uploadUrl = "https://" + mediaUploadParams.bucket + ".cos." + mediaUploadParams.region + ".myqcloud.com";
+	let resUrl = (mediaUploadParams.customDomain ? mediaUploadParams.customDomain : uploadUrl) + "/" + filename;
+
+	//腾讯云COS对象存储
+	if (mediaUploadParams.storage == "cos") {
+
+		setTimeout(async () => {
+			let authorization = await buildCosAuthorization('post', '/', '');
+			let uploadTask = uni.uploadFile({
+				url: uploadUrl,
+				name: 'file',
+				formData: {
+					'key': filename,
+					'success_action_status': 200,
+					'Signature': authorization,
+					'Content-Type': ''
+				},
+				header: {
+					Authorization: authorization,
+				},
+				filePath: options.filepath,
+				success: (res) => {
+					successHandle(options, "success", {
+						url: resUrl
+					})
+				},
+				fail: (err) => {
+					errHandle(options, err);
+				}
+			});
+			if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+				uploadTask.onProgressUpdate((res) => {
+					options.onProgress(res);
+				});
+			}
+		}, 0);
+	}
+}
+
+/**
+ *
  * 上传图片
+ * 外部暴露
+ *
+ * @param {Object} options
+ * @param {String} options.filename @description 文件名称
+ * @param {String} options.filepath @description 本地文件临时路径
+ * @param {Function} options.onProgress @description 上传进度回调
  */
 function uploadImage(options) {
 	if (!instance.mediaUploadParams) {
@@ -125,6 +187,11 @@ function uploadImage(options) {
 
 /**
  * 上传音频
+ *
+ * @param {Object} options
+ * @param {String} options.filename @description 文件名称
+ * @param {String} options.filepath @description 本地文件临时路径
+ * @param {Function} options.onProgress @description 上传进度回调
  */
 function uploadAudio(options) {
 	if (!instance.mediaUploadParams) {
@@ -173,8 +240,14 @@ function uploadAudio(options) {
 	}
 }
 
+
 /**
  * 上传视频
+ *
+ * @param {Object} options
+ * @param {String} options.filename @description 文件名称
+ * @param {String} options.filepath @description 本地文件临时路径
+ * @param {Function} options.onProgress @description 上传进度回调
  */
 function uploadVideo(options) {
 	if (!instance.mediaUploadParams) {
@@ -257,6 +330,7 @@ function uploadVideo(options) {
 
 export {
 	getMediaUploadParams,
+	upload,
 	uploadImage,
 	uploadAudio,
 	uploadVideo

@@ -15,6 +15,7 @@ import log from './func/log';
 import {
 	createTextMessage,
 	createImageMessage,
+	createLocationMessage,
 	createVideoMessage,
 	createCustomMessage,
 	sendMessage,
@@ -27,7 +28,8 @@ import {
 	getConversationListFromCloud
 } from './service/conversationService'
 import {
-	getMediaUploadParams
+	getMediaUploadParams,
+	upload,
 } from './service/uploadService'
 import {
 	updateUserInfo
@@ -105,16 +107,18 @@ class YeIMUniSDK {
 			return instance;
 		}
 		instance = new YeIMUniSDK(options);
-		YeIMUniSDK.prototype.createTextMessage = createTextMessage;
-		YeIMUniSDK.prototype.createImageMessage = createImageMessage;
-		YeIMUniSDK.prototype.createVideoMessage = createVideoMessage;
-		YeIMUniSDK.prototype.createCustomMessage = createCustomMessage;
-		YeIMUniSDK.prototype.sendMessage = sendMessage;
-		YeIMUniSDK.prototype.getMessageList = getMessageList;
-		YeIMUniSDK.prototype.getConversationList = getConversationListFromLocal;
-		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo;
-		YeIMUniSDK.prototype.addEventListener = addEventListener;
-		YeIMUniSDK.prototype.removeEventListener = removeEventListener;
+		YeIMUniSDK.prototype.createTextMessage = createTextMessage; //创建文字消息
+		YeIMUniSDK.prototype.createImageMessage = createImageMessage; //创建图片消息
+		YeIMUniSDK.prototype.createVideoMessage = createVideoMessage; //创建小视频消息
+		YeIMUniSDK.prototype.createLocationMessage = createLocationMessage; //创建位置消息
+		YeIMUniSDK.prototype.createCustomMessage = createCustomMessage; //创建自定义消息
+		YeIMUniSDK.prototype.upload = upload; //通用上传接口
+		YeIMUniSDK.prototype.sendMessage = sendMessage; //发送消息统一接口
+		YeIMUniSDK.prototype.getMessageList = getMessageList; //获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
+		YeIMUniSDK.prototype.getConversationList = getConversationListFromLocal; //获取会话列表
+		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像
+		YeIMUniSDK.prototype.addEventListener = addEventListener; //设置监听器
+		YeIMUniSDK.prototype.removeEventListener = removeEventListener; //移除监听器
 		console.log("============= YeIMUniSDK 初始化成功！=============")
 		return instance;
 	}
@@ -144,6 +148,7 @@ class YeIMUniSDK {
 			return errHandle(options, "token 不能为空");
 		}
 
+		//首次连接成功后，设置websocket相关监听
 		if (this.firstConnect) {
 			uni.onSocketOpen(this.socketOpen.bind(this));
 			uni.onSocketError(this.socketError.bind(this));
@@ -151,7 +156,9 @@ class YeIMUniSDK {
 			uni.onSocketMessage(this.socketMessage.bind(this));
 		}
 
+		//拼接websocket连接url
 		let url = this.defaults.socketURL + "/" + options.userId + "/" + options.token;
+		//创建websocket连接
 		this.socketTask = uni.connectSocket({
 			url: url,
 			success: (res) => {
@@ -162,13 +169,17 @@ class YeIMUniSDK {
 			},
 			complete: () => {}
 		});
+		//连接后，设置首次连接（firstConnect）为false
 		this.firstConnect = false;
+
+		//连接异常
 		let timer = setTimeout(() => {
 			timer = undefined;
 			log(1, "连接服务端失败，请检查配置");
 			return errHandle(options, "网络异常，请稍后重试");
 		}, 5000);
 
+		//临时设置监听onMessage
 		this.socketTask.onMessage((res) => {
 			if (!timer) {
 				return;
@@ -176,15 +187,18 @@ class YeIMUniSDK {
 			clearTimeout(timer);
 			timer = undefined;
 			let data = JSON.parse(res.data);
-			//登陆成功
+			//监听到登陆成功
 			if (data.code == 201) {
+				//移除临时监听
 				this.socketTask.onMessage(() => {});
+				//设置用户相关参数
 				this.user = data.data;
 				this.userId = options.userId;
 				this.token = options.token;
+				//设置socket state（socketLogged）登陆成功
 				this.socketLogged = true;
 				log(1, "IMServer登陆成功，登陆用户：" + options.userId)
-				//1.登陆成功后从服务端获取一下全部会话 
+				//1.登陆成功后从服务端获取一下全部会话，并发送事件CONVERSATION_LIST_CHANGED
 				getConversationListFromCloud(1, 100000);
 				//2.获取媒体上传参数
 				getMediaUploadParams();
@@ -238,7 +252,7 @@ class YeIMUniSDK {
 		if (this.socketTask) {
 			return this.socketTask.readyState;
 		} else {
-			return 0;
+			return 3;
 		}
 	}
 
@@ -321,7 +335,7 @@ class YeIMUniSDK {
 	}
 
 	/**
-	 * 消息统一处理
+	 * WebSocket消息统一处理
 	 * @param {Object} data
 	 */
 	socketMessageHandle(data) {
@@ -335,7 +349,7 @@ class YeIMUniSDK {
 			//2. 发送消息接收事件
 			emit(YeIMUniSDKDefines.EVENT.MESSAGE_RECEIVED, message);
 
-			//3.通知socket端我已收到
+			//3.通知socket端我已收到（为保证双方消息投递可靠性，发送消息使用http协议确保发送成功。而接收消息使用到了websocket，所以这里发一条回调消息通知Server端这条消息确认收到。）
 			this.notifySocketMessageReceived(message);
 
 		} else if (data.code == 203) {
@@ -371,7 +385,7 @@ class YeIMUniSDK {
 
 
 	/**
-	 * 拦截
+	 * 拦截登陆状态
 	 */
 	checkLogged() {
 		if (!this.socketLogged || !this.userId || !this.token) {
