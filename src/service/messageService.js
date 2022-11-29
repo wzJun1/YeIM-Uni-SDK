@@ -662,6 +662,7 @@ function getMessageListFromCloud(options, page = 1) {
 export {
 	createTextMessage,
 	createImageMessage,
+	createAudioMessage,
 	createVideoMessage,
 	createLocationMessage,
 	createCustomMessage,

@@ -15,6 +15,7 @@ import log from './func/log';
 import {
 	createTextMessage,
 	createImageMessage,
+	createAudioMessage,
 	createLocationMessage,
 	createVideoMessage,
 	createCustomMessage,
@@ -32,6 +33,7 @@ import {
 	upload,
 } from './service/uploadService'
 import {
+	getUserInfo,
 	updateUserInfo
 } from './service/userService'
 
@@ -109,6 +111,7 @@ class YeIMUniSDK {
 		instance = new YeIMUniSDK(options);
 		YeIMUniSDK.prototype.createTextMessage = createTextMessage; //创建文字消息
 		YeIMUniSDK.prototype.createImageMessage = createImageMessage; //创建图片消息
+		YeIMUniSDK.prototype.createAudioMessage = createAudioMessage; //创建语音消息
 		YeIMUniSDK.prototype.createVideoMessage = createVideoMessage; //创建小视频消息
 		YeIMUniSDK.prototype.createLocationMessage = createLocationMessage; //创建位置消息
 		YeIMUniSDK.prototype.createCustomMessage = createCustomMessage; //创建自定义消息
@@ -116,6 +119,7 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.sendMessage = sendMessage; //发送消息统一接口
 		YeIMUniSDK.prototype.getMessageList = getMessageList; //获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
 		YeIMUniSDK.prototype.getConversationList = getConversationListFromLocal; //获取会话列表
+		YeIMUniSDK.prototype.getUserInfo = getUserInfo; //获取用户资料
 		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像
 		YeIMUniSDK.prototype.addEventListener = addEventListener; //设置监听器
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener; //移除监听器
