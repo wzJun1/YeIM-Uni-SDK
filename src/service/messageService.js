@@ -63,6 +63,10 @@ function createTextMessage(options) {
 			text: options.body.text
 		}
 	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
 	let message = formatMessage(params);
 	return message;
 }
@@ -123,6 +127,10 @@ function createImageMessage(options) {
 			thumbnailHeight: options.body.file.height
 		}
 	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
 	let message = formatMessage(params);
 	if (options.onProgress !== undefined && typeof options.onProgress === "function") {
 		message.onProgress = options.onProgress;
@@ -184,6 +192,10 @@ function createLocationMessage(options) {
 			latitude: options.body.latitude,
 		}
 	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
 	let message = formatMessage(params);
 	return message;
 }
@@ -235,6 +247,10 @@ function createAudioMessage(options) {
 			duration: options.body.file.duration
 		}
 	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
 	let message = formatMessage(params);
 	if (options.onProgress !== undefined && typeof options.onProgress === "function") {
 		message.onProgress = options.onProgress;
@@ -295,6 +311,10 @@ function createVideoMessage(options) {
 			videoHeight: options.body.file.height
 		}
 	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
 	let message = formatMessage(params);
 	if (options.onProgress !== undefined && typeof options.onProgress === "function") {
 		message.onProgress = options.onProgress;
@@ -338,8 +358,11 @@ function createCustomMessage(options) {
 		conversationType: options.conversationType,
 		body: options.body
 	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
 	let message = formatMessage(params);
-
 	return message;
 }
 
@@ -516,13 +539,22 @@ function sendVideoMessage(options) {
  * @param {Object} message
  */
 function saveMessage(message) {
+	if (!message.conversationId) {
+		log(1, "message.conversationId 不能为空");
+		return;
+	}
 	let list = getMessageListFromLocal(message.conversationId);
 	let index = list.findIndex(item => {
 		return item.messageId === message.messageId
 	});
+	let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(message.conversationId);
+	//不存在插入
 	if (index === -1) {
 		list.push(message);
-		let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(message.conversationId);
+		uni.setStorageSync(key, list);
+	} else {
+		//存在则更新
+		list[index] = message;
 		uni.setStorageSync(key, list);
 	}
 }
@@ -659,6 +691,57 @@ function getMessageListFromCloud(options, page = 1) {
 	});
 }
 
+/**
+ * 撤回消息
+ * 
+ * @param {Object} options
+ * @param {Message} message @description 消息
+ * @param {Function} options.success @description 成功回调
+ * @param {Function} options.fail @description 失败回调
+ */
+function revokeMessage(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	if (!options.message) {
+		return errHandle(options, "message 不能为空")
+	}
+
+	if (!options.message.messageId) {
+		return errHandle(options, "message.messageId 不能为空")
+	}
+
+	if (!options.message.conversationId) {
+		return errHandle(options, "message.conversationId 不能为空")
+	}
+
+	uni.request({
+		url: instance.defaults.baseURL + "/message/revoke",
+		data: {
+			messageId: options.message.messageId
+		},
+		method: 'GET',
+		header: {
+			'content-type': 'application/json',
+			'token': instance.token
+		},
+		success: (res) => {
+			//消息撤回后，本地操作消息记录
+			//修改消息为撤回
+			options.message.isRevoke = 1;
+			saveMessage(options.message);
+			successHandle(options, "撤回成功", options.message);
+		},
+		fail: (err) => {
+			log(1, err);
+			errHandle(options, err);
+		}
+	});
+}
+
+
 export {
 	createTextMessage,
 	createImageMessage,
@@ -668,5 +751,6 @@ export {
 	createCustomMessage,
 	sendMessage,
 	saveMessage,
-	getMessageList
+	getMessageList,
+	revokeMessage
 }

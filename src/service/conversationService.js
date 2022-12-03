@@ -33,6 +33,11 @@ function saveAndUpdateConversation(conversation) {
  * 从本地获取会话列表
  */
 function getConversationListFromLocal(page = 1, limit = 20) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
 	let key = "yeim:conversationList:" + md5(instance.userId);
 	let result = uni.getStorageSync(key);
 	result = result ? result : [];
@@ -76,8 +81,130 @@ function saveConversationList(list) {
 	emit(YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED, list);
 }
 
+/**
+ * 清除指定会话未读数
+ * @param {Object} conversationId
+ */
+function clearConversationUnread(conversationId) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	let key = "yeim:conversationList:" + md5(instance.userId);
+	let result = uni.getStorageSync(key);
+	result = result ? result : [];
+	let index = result.findIndex(item => {
+		return item.conversationId === conversationId;
+	});
+	if (index !== -1) {
+		result[index].unread = 0;
+		uni.setStorageSync(key, result);
+	}
+
+	uni.request({
+		url: instance.defaults.baseURL + "/conversation/update/unread",
+		data: {
+			conversationId: conversationId
+		},
+		method: 'GET',
+		header: {
+			'content-type': 'application/json',
+			'token': instance.token
+		},
+		success: (res) => {
+
+		},
+		fail: (err) => {
+			log(1, err);
+		}
+	});
+	emit(YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED, result);
+}
+
+/**
+ * 处理私聊会话已读回执
+ * @param {Object} conversationId
+ */
+function handlePrivateConversationReadReceipt(conversationId) {
+	if (!conversationId) {
+		return log(1, "conversationId is null");
+	}
+	//查出当前会话发出到消息
+	let messageKey = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(conversationId);
+	let result = uni.getStorageSync(messageKey);
+	result = result ? result : [];
+	if (result) {
+		let tempList = [];
+		for (let i = 0; i < result.length; i++) {
+			let message = result[i];
+			if (message.direction == "out") {
+				message.isRead = 1;
+				result[i].isRead = 1;
+				tempList.push(message);
+			}
+		}
+		uni.setStorageSync(messageKey, result);
+		//发送私聊会话已读事件
+		emit(YeIMUniSDKDefines.EVENT.PRIVATE_READ_RECEIPT, {
+			conversationId: conversationId,
+			list: tempList
+		});
+	}
+}
+
+/**
+ * 删除会话和会话里的聊天记录
+ * @param {Object} conversationId
+ */
+function deleteConversation(conversationId) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	//1.删除本地会话
+	let key = "yeim:conversationList:" + md5(instance.userId);
+	let result = uni.getStorageSync(key);
+	result = result ? result : [];
+	let index = result.findIndex(item => {
+		return item.conversationId === conversationId;
+	});
+	if (index !== -1) {
+		result.splice(index, 1);
+		uni.setStorageSync(key, result);
+	}
+	//2.删除本地会话内的聊天记录
+	let messageKey = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(conversationId);
+	uni.removeStorageSync(messageKey);
+
+	//3.删除云端会话和云端聊天记录
+	uni.request({
+		url: instance.defaults.baseURL + "/conversation/delete",
+		data: {
+			conversationId: conversationId
+		},
+		method: 'GET',
+		header: {
+			'content-type': 'application/json',
+			'token': instance.token
+		},
+		success: (res) => {
+
+		},
+		fail: (err) => {
+			log(1, err);
+		}
+	});
+	emit(YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED, result);
+
+}
+
 export {
 	saveAndUpdateConversation,
+	clearConversationUnread,
+	deleteConversation,
 	getConversationListFromLocal,
-	getConversationListFromCloud
+	getConversationListFromCloud,
+	handlePrivateConversationReadReceipt
 }

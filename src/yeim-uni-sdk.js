@@ -1,7 +1,6 @@
 import {
 	YeIMUniSDKDefines
 } from './const/yeim-defines';
-import GenId from './utils/genid';
 import {
 	successHandle,
 	errHandle
@@ -21,12 +20,16 @@ import {
 	createCustomMessage,
 	sendMessage,
 	saveMessage,
-	getMessageList
+	getMessageList,
+	revokeMessage
 } from './service/messageService'
 import {
+	deleteConversation,
 	saveAndUpdateConversation,
+	clearConversationUnread,
 	getConversationListFromLocal,
-	getConversationListFromCloud
+	getConversationListFromCloud,
+	handlePrivateConversationReadReceipt
 } from './service/conversationService'
 import {
 	getMediaUploadParams,
@@ -77,16 +80,12 @@ class YeIMUniSDK {
 		this.lockReconnect = false;
 		//重连次数
 		this.reConnectNum = 0;
-
+		//连接定时器
+		this.connectTimer = undefined;
 		//心跳定时器
 		this.heartTimer = null;
 		//检测定时器
 		this.checkTimer = null;
-
-		//分布式ID生成器
-		this.genid = new GenId({
-			WorkerId: 1
-		});
 
 		//用户信息
 		this.user = {};
@@ -118,12 +117,15 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.upload = upload; //通用上传接口
 		YeIMUniSDK.prototype.sendMessage = sendMessage; //发送消息统一接口
 		YeIMUniSDK.prototype.getMessageList = getMessageList; //获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
+		YeIMUniSDK.prototype.revokeMessage = revokeMessage; //撤回消息
 		YeIMUniSDK.prototype.getConversationList = getConversationListFromLocal; //获取会话列表
+		YeIMUniSDK.prototype.clearConversationUnread = clearConversationUnread; //清除指定会话未读数
+		YeIMUniSDK.prototype.deleteConversation = deleteConversation; //删除指定会话和聊天记录
 		YeIMUniSDK.prototype.getUserInfo = getUserInfo; //获取用户资料
 		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像
 		YeIMUniSDK.prototype.addEventListener = addEventListener; //设置监听器
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener; //移除监听器
-		console.log("============= YeIMUniSDK 初始化成功！=============")
+		log(1, "============= YeIMUniSDK 初始化成功！=============")
 		return instance;
 	}
 
@@ -166,10 +168,10 @@ class YeIMUniSDK {
 		this.socketTask = uni.connectSocket({
 			url: url,
 			success: (res) => {
-				console.log(res)
+
 			},
 			fail: (err) => {
-				console.log(err)
+
 			},
 			complete: () => {}
 		});
@@ -177,26 +179,28 @@ class YeIMUniSDK {
 		this.firstConnect = false;
 
 		//连接异常
-		let timer = setTimeout(() => {
-			timer = undefined;
+		this.connectTimer = setTimeout(() => {
+			this.connectTimer = undefined;
 			log(1, "连接服务端失败，请检查配置");
 			return errHandle(options, "网络异常，请稍后重试");
-		}, 5000);
+		}, 2000);
 
 		//临时设置监听onMessage
 		this.socketTask.onMessage((res) => {
-			if (!timer) {
+			if (!this.connectTimer) {
 				return;
 			}
-			clearTimeout(timer);
-			timer = undefined;
+			console.log("开始clearTimeout")
+			clearTimeout(this.connectTimer);
+			this.connectTimer = undefined;
 			let data = JSON.parse(res.data);
 			//监听到登陆成功
 			if (data.code == 201) {
 				//移除临时监听
 				this.socketTask.onMessage(() => {});
 				//设置用户相关参数
-				this.user = data.data;
+				let user = data.data.user;
+				this.user = user;
 				this.userId = options.userId;
 				this.token = options.token;
 				//设置socket state（socketLogged）登陆成功
@@ -206,11 +210,20 @@ class YeIMUniSDK {
 				getConversationListFromCloud(1, 100000);
 				//2.获取媒体上传参数
 				getMediaUploadParams();
-				return successHandle(options, "登陆成功", data.data);
+				return successHandle(options, "登陆成功", user);
 			} else {
 				return errHandle(options, data.message);
 			}
 		})
+	}
+
+	/**
+	 * 断开连接
+	 * 手动操作断开连接后，不会重连
+	 */
+	disConnect() {
+		this.allowReconnect = false;
+		uni.closeSocket();
 	}
 
 	/**
@@ -297,7 +310,6 @@ class YeIMUniSDK {
 	 * @param {Object} info
 	 */
 	socketOpen(info) {
-		console.log(info)
 		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "connected");
 	}
 
@@ -306,7 +318,7 @@ class YeIMUniSDK {
 	 * @param {Object} err
 	 */
 	socketClose(err) {
-		console.log(err)
+		log(1, err);
 		this.socketLogged = false;
 		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "closed");
 		this.reConnect();
@@ -317,7 +329,7 @@ class YeIMUniSDK {
 	 * @param {Object} err
 	 */
 	socketError(err) {
-		console.log(err)
+		log(1, err);
 		this.reConnect();
 	}
 
@@ -360,7 +372,10 @@ class YeIMUniSDK {
 			//收到会话更新
 			let conversation = data.data;
 			saveAndUpdateConversation(conversation);
-
+		} else if (data.code == 205) {
+			//收到私聊会话已读回执
+			let conversation = data.data;
+			handlePrivateConversationReadReceipt(conversation.conversationId);
 		} else if (data.code == 109) {
 			//KICKED_OUT 被踢下线，不允许重连了
 			this.allowReconnect = false;

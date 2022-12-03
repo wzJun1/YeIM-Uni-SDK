@@ -4,6 +4,7 @@ YeIMUniSDKDefines.EVENT = {};
 YeIMUniSDKDefines.EVENT.NET_CHANGED = "net_changed"; //网络状态变化
 YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED = "conversation_list_changed"; // 会话列表变化
 YeIMUniSDKDefines.EVENT.MESSAGE_RECEIVED = "message_received"; // 收到消息
+YeIMUniSDKDefines.EVENT.PRIVATE_READ_RECEIPT = "private_read_receipt"; //私聊会话已读回执
 YeIMUniSDKDefines.EVENT.KICKED_OUT = "kicked_out"; //用户被踢下线
 
 //会话类型
