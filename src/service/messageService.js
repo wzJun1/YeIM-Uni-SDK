@@ -445,17 +445,13 @@ function sendImageMessage(options) {
 	uploadImage({
 		filename: instance.token + "_image.png",
 		filepath: message.body.originalUrl,
+		width: message.body.originalWidth,
+		height: message.body.originalHeight,
 		success: (res) => {
-			let resultUrl = res.data.url;
-			message.body.originalUrl = resultUrl;
-			if (message.body.originalHeight > 198) {
-				let d = 198 / message.body.originalHeight;
-				message.body.thumbnailHeight = parseInt(message.body.originalHeight * d);
-				message.body.thumbnailWidth = parseInt(message.body.originalWidth * d);
-				message.body.thumbnailUrl = message.body.originalUrl + "?imageMogr2/thumbnail/" + message
-					.body.thumbnailWidth + "x" +
-					message.body.thumbnailHeight;
-			}
+			message.body.originalUrl = res.data.url;
+			message.body.thumbnailWidth = res.data.thumbnailWidth;
+			message.body.thumbnailHeight = res.data.thumbnailHeight;
+			message.body.thumbnailUrl = res.data.thumbnailUrl;
 			options.message = message;
 			sendIMMessage(options);
 		},

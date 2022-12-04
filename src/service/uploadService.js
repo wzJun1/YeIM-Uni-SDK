@@ -36,6 +36,29 @@ async function getMediaUploadParams() {
 }
 
 /**
+ * 获取上传URL
+ */
+function getUploadURL() {
+	let url = "";
+	//yeim-uni-sdk-test.oss-cn-guangzhou.aliyuncs.com
+	if (instance.mediaUploadParams.storage == "cos") {
+		url = "https://" + instance.mediaUploadParams.bucket + ".cos." + instance.mediaUploadParams.region +
+			".myqcloud.com";
+	} else if (instance.mediaUploadParams.storage == "oss") {
+		url = "https://" + instance.mediaUploadParams.bucket + "." + instance.mediaUploadParams.region +
+			".aliyuncs.com";
+	}
+	return url;
+}
+
+/**
+ * 获取访问URL
+ */
+function getVisitURL() {
+	return (instance.mediaUploadParams.customDomain ? instance.mediaUploadParams.customDomain : getUploadURL());
+}
+
+/**
  * 生成腾讯云COS 对象存储 请求签名 Authorization
  * @url https://cloud.tencent.com/document/product/436/7778
  * 
@@ -66,6 +89,19 @@ async function buildCosAuthorization(method, path, headers) {
 }
 
 /**
+ * 生成阿里云OSS 对象存储 请求签名 signature
+ * @url https://help.aliyun.com/document_detail/31988.html 
+ */
+async function buildOSSSignature() {
+	let time = parseInt((new Date()).getTime() / 1000) - 1;
+	if (!instance.mediaUploadParams || time > instance.mediaUploadParams.expireTime) {
+		//过期，重新获取
+		await getMediaUploadParams();
+	}
+	return instance.mediaUploadParams;
+}
+
+/**
  *
  * 通用上传接口
  * 外部暴露
@@ -87,10 +123,12 @@ function upload(options) {
 
 	let mediaUploadParams = instance.mediaUploadParams;
 	let suffix = options.filename.substring(options.filename.lastIndexOf("."));
-	let filename = md5((new Date()).getTime() + "_" + options.filename) + "_image" + suffix;
+	let filename = md5((new Date()).getTime() + "_" + options.filename) + "_other" + suffix;
 
-	let uploadUrl = "https://" + mediaUploadParams.bucket + ".cos." + mediaUploadParams.region + ".myqcloud.com";
-	let resUrl = (mediaUploadParams.customDomain ? mediaUploadParams.customDomain : uploadUrl) + "/" + filename;
+	//上传URL
+	let uploadUrl = getUploadURL();
+	//上传完成后的资源访问URL
+	let resUrl = getVisitURL() + "/" + filename;
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -125,6 +163,37 @@ function upload(options) {
 				});
 			}
 		}, 0);
+	} else if (mediaUploadParams.storage == "oss") {
+
+		//阿里云对象存储 
+		setTimeout(async () => {
+			await buildOSSSignature();
+			let uploadTask = uni.uploadFile({
+				url: uploadUrl,
+				name: 'file',
+				formData: {
+					'key': filename,
+					'policy': mediaUploadParams.policyBase64,
+					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
+					'success_action_status': 200,
+					'signature': mediaUploadParams.signature,
+				},
+				filePath: options.filepath,
+				success: (res) => {
+					successHandle(options, "success", {
+						url: resUrl
+					})
+				},
+				fail: (err) => {
+					errHandle(options, err);
+				}
+			});
+			if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+				uploadTask.onProgressUpdate((res) => {
+					options.onProgress(res);
+				});
+			}
+		});
 	}
 }
 
@@ -135,7 +204,9 @@ function upload(options) {
  *
  * @param {Object} options
  * @param {String} options.filename @description 文件名称
- * @param {String} options.filepath @description 本地文件临时路径
+ * @param {String} options.filepath @description 本地图片文件临时路径
+ * @param {Number} options.width @description 图片宽度
+ * @param {Number} options.height @description 图片高度
  * @param {Function} options.onProgress @description 上传进度回调
  */
 function uploadImage(options) {
@@ -146,8 +217,10 @@ function uploadImage(options) {
 	let suffix = options.filename.substring(options.filename.lastIndexOf("."));
 	let filename = md5((new Date()).getTime() + "_" + options.filename) + "_image" + suffix;
 
-	let uploadUrl = "https://" + mediaUploadParams.bucket + ".cos." + mediaUploadParams.region + ".myqcloud.com";
-	let resUrl = (mediaUploadParams.customDomain ? mediaUploadParams.customDomain : uploadUrl) + "/" + filename;
+	//上传URL
+	let uploadUrl = getUploadURL();
+	//上传完成后的资源访问URL
+	let resUrl = getVisitURL() + "/" + filename;
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -167,7 +240,89 @@ function uploadImage(options) {
 					Authorization: authorization,
 				},
 				filePath: options.filepath,
-				success: (res) => {
+				success: () => {
+
+					let thumbnailHeight = 0;
+					let thumbnailWidth = 0;
+
+					if (options.height > 198) {
+						let d = 198 / options.height;
+						thumbnailHeight = parseInt(options.height *
+							d);
+						thumbnailWidth = parseInt(options.width * d);
+					} else if (options.width > 198) {
+						let d = 198 / options.width;
+						thumbnailHeight = parseInt(options.height *
+							d);
+						thumbnailWidth = parseInt(options.width * d);
+					}
+
+					let thumbnailUrl = resUrl + "?imageMogr2/thumbnail/" + thumbnailWidth +
+						"x" + thumbnailHeight;
+
+					successHandle(options, "success", {
+						url: resUrl,
+						thumbnailUrl: thumbnailUrl,
+						thumbnailWidth: thumbnailWidth,
+						thumbnailHeight: thumbnailHeight
+					})
+
+				},
+				fail: (err) => {
+					errHandle(options, err);
+				}
+			});
+			if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+				uploadTask.onProgressUpdate((res) => {
+					options.onProgress(res);
+				});
+			}
+		}, 0);
+	} else if (mediaUploadParams.storage == "oss") {
+
+		//阿里云对象存储 
+		setTimeout(async () => {
+			await buildOSSSignature();
+			let uploadTask = uni.uploadFile({
+				url: uploadUrl,
+				name: 'file',
+				formData: {
+					'key': filename,
+					'policy': mediaUploadParams.policyBase64,
+					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
+					'success_action_status': 200,
+					'signature': mediaUploadParams.signature,
+				},
+				filePath: options.filepath,
+				success: () => {
+
+					//阿里云图片缩放
+					let thumbnailHeight = 0;
+					let thumbnailWidth = 0;
+
+					if (options.height > 198) {
+						let d = 198 / options.height;
+						thumbnailHeight = parseInt(options.height *
+							d);
+						thumbnailWidth = parseInt(options.width * d);
+					} else if (options.width > 198) {
+						let d = 198 / options.width;
+						thumbnailHeight = parseInt(options.height *
+							d);
+						thumbnailWidth = parseInt(options.width * d);
+					}
+
+					let thumbnailUrl = resUrl + "?x-oss-process=image/resize,m_fixed,h_" +
+						thumbnailHeight + ",w_" + thumbnailWidth;
+
+					successHandle(options, "success", {
+						url: resUrl,
+						thumbnailUrl: thumbnailUrl,
+						thumbnailWidth: thumbnailWidth,
+						thumbnailHeight: thumbnailHeight
+					})
+
+
 					successHandle(options, "success", {
 						url: resUrl
 					})
@@ -181,7 +336,7 @@ function uploadImage(options) {
 					options.onProgress(res);
 				});
 			}
-		}, 0);
+		});
 	}
 }
 
@@ -201,8 +356,10 @@ function uploadAudio(options) {
 	let suffix = options.filename.substring(options.filename.lastIndexOf("."));
 	let filename = md5((new Date()).getTime() + "_" + options.filename) + "_audio" + suffix;
 
-	let uploadUrl = "https://" + mediaUploadParams.bucket + ".cos." + mediaUploadParams.region + ".myqcloud.com";
-	let resUrl = (mediaUploadParams.customDomain ? mediaUploadParams.customDomain : uploadUrl) + "/" + filename;
+	//上传URL
+	let uploadUrl = getUploadURL();
+	//上传完成后的资源访问URL
+	let resUrl = getVisitURL() + "/" + filename;
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -237,7 +394,39 @@ function uploadAudio(options) {
 				});
 			}
 		}, 0);
+	} else if (mediaUploadParams.storage == "oss") {
+
+		//阿里云对象存储 
+		setTimeout(async () => {
+			await buildOSSSignature();
+			let uploadTask = uni.uploadFile({
+				url: uploadUrl,
+				name: 'file',
+				formData: {
+					'key': filename,
+					'policy': mediaUploadParams.policyBase64,
+					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
+					'success_action_status': 200,
+					'signature': mediaUploadParams.signature,
+				},
+				filePath: options.filepath,
+				success: (res) => {
+					successHandle(options, "success", {
+						url: resUrl
+					})
+				},
+				fail: (err) => {
+					errHandle(options, err);
+				}
+			});
+			if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+				uploadTask.onProgressUpdate((res) => {
+					options.onProgress(res);
+				});
+			}
+		});
 	}
+
 }
 
 
@@ -256,9 +445,11 @@ function uploadVideo(options) {
 	let mediaUploadParams = instance.mediaUploadParams;
 	let suffix = options.filename.substring(options.filename.lastIndexOf("."));
 	let filename = md5((new Date()).getTime() + "_" + options.filename) + "_video" + suffix;
-	//<BucketName-APPID>.cos.<Region>.myqcloud.com
-	let uploadUrl = "https://" + mediaUploadParams.bucket + ".cos." + mediaUploadParams.region + ".myqcloud.com";
-	let resUrl = (mediaUploadParams.customDomain ? mediaUploadParams.customDomain : uploadUrl) + "/" + filename;
+
+	//上传URL
+	let uploadUrl = getUploadURL();
+	//上传完成后的资源访问URL
+	let resUrl = getVisitURL() + "/" + filename;
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -325,6 +516,41 @@ function uploadVideo(options) {
 				});
 			}
 		}, 0);
+	} else if (mediaUploadParams.storage == "oss") {
+
+		//阿里云对象存储 
+		setTimeout(async () => {
+			await buildOSSSignature();
+			let uploadTask = uni.uploadFile({
+				url: uploadUrl,
+				name: 'file',
+				formData: {
+					'key': filename,
+					'policy': mediaUploadParams.policyBase64,
+					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
+					'success_action_status': 200,
+					'signature': mediaUploadParams.signature,
+				},
+				filePath: options.filepath,
+				success: (res) => {
+					//阿里云视频截帧
+					//?x-oss-process=video/snapshot,t_1000,f_jpg,m_fast 
+					successHandle(options, "success", {
+						videoUrl: resUrl,
+						thumbnailUrl: resUrl +
+							"?x-oss-process=video/snapshot,t_1000,f_jpg,m_fast"
+					})
+				},
+				fail: (err) => {
+					errHandle(options, err);
+				}
+			});
+			if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+				uploadTask.onProgressUpdate((res) => {
+					options.onProgress(res);
+				});
+			}
+		});
 	}
 }
 
