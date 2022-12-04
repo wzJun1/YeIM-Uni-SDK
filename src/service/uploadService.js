@@ -47,6 +47,8 @@ function getUploadURL() {
 	} else if (instance.mediaUploadParams.storage == "oss") {
 		url = "https://" + instance.mediaUploadParams.bucket + "." + instance.mediaUploadParams.region +
 			".aliyuncs.com";
+	} else if (instance.mediaUploadParams.storage == "local") {
+		url = instance.defaults.baseURL;
 	}
 	return url;
 }
@@ -194,7 +196,39 @@ function upload(options) {
 				});
 			}
 		});
+	} else if (mediaUploadParams.storage == "local") {
+		//本地上传 
+		let uploadTask = uni.uploadFile({
+			url: uploadUrl + "/upload",
+			name: 'file',
+			formData: {
+				'key': filename
+			},
+			header: {
+				'token': instance.token
+			},
+			filePath: options.filepath,
+			success: (uploadResponse) => {
+				let data = JSON.parse(uploadResponse.data);
+				if (data.code == 200) {
+					successHandle(options, "success", {
+						url: getVisitURL() + data.data.url,
+					})
+				} else {
+					errHandle(options, data.message);
+				}
+			},
+			fail: (err) => {
+				errHandle(options, err);
+			}
+		});
+		if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+			uploadTask.onProgressUpdate((res) => {
+				options.onProgress(res);
+			});
+		}
 	}
+
 }
 
 /**
@@ -337,6 +371,44 @@ function uploadImage(options) {
 				});
 			}
 		});
+	} else if (mediaUploadParams.storage == "local") {
+
+		//本地上传 
+		let uploadTask = uni.uploadFile({
+			url: uploadUrl + "/upload/image",
+			name: 'file',
+			formData: {
+				'key': filename
+			},
+			header: {
+				'token': instance.token
+			},
+			filePath: options.filepath,
+			success: (uploadResponse) => {
+
+				let data = JSON.parse(uploadResponse.data);
+				if (data.code == 200) {
+					successHandle(options, "success", {
+						url: getVisitURL() + data.data.url,
+						thumbnailUrl: getVisitURL() + data.data.thumbnailUrl,
+						thumbnailWidth: data.data.thumbnailWidth,
+						thumbnailHeight: data.data.thumbnailHeight
+					})
+				} else {
+					errHandle(options, data.message);
+				}
+
+
+			},
+			fail: (err) => {
+				errHandle(options, err);
+			}
+		});
+		if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+			uploadTask.onProgressUpdate((res) => {
+				options.onProgress(res);
+			});
+		}
 	}
 }
 
@@ -425,6 +497,37 @@ function uploadAudio(options) {
 				});
 			}
 		});
+	} else if (mediaUploadParams.storage == "local") {
+		//本地上传 
+		let uploadTask = uni.uploadFile({
+			url: uploadUrl + "/upload",
+			name: 'file',
+			formData: {
+				'key': filename
+			},
+			header: {
+				'token': instance.token
+			},
+			filePath: options.filepath,
+			success: (uploadResponse) => {
+				let data = JSON.parse(uploadResponse.data);
+				if (data.code == 200) {
+					successHandle(options, "success", {
+						url: getVisitURL() + data.data.url,
+					})
+				} else {
+					errHandle(options, data.message);
+				}
+			},
+			fail: (err) => {
+				errHandle(options, err);
+			}
+		});
+		if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+			uploadTask.onProgressUpdate((res) => {
+				options.onProgress(res);
+			});
+		}
 	}
 
 }
@@ -551,6 +654,38 @@ function uploadVideo(options) {
 				});
 			}
 		});
+	} else if (mediaUploadParams.storage == "local") {
+		//本地上传 
+		let uploadTask = uni.uploadFile({
+			url: uploadUrl + "/upload/video",
+			name: 'file',
+			formData: {
+				'key': filename
+			},
+			header: {
+				'token': instance.token
+			},
+			filePath: options.filepath,
+			success: (uploadResponse) => {
+				let data = JSON.parse(uploadResponse.data);
+				if (data.code == 200) {
+					successHandle(options, "success", {
+						videoUrl: getVisitURL() + data.data.url,
+						thumbnailUrl: getVisitURL() + data.data.thumbnailUrl,
+					})
+				} else {
+					errHandle(options, data.message);
+				}
+			},
+			fail: (err) => {
+				errHandle(options, err);
+			}
+		});
+		if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+			uploadTask.onProgressUpdate((res) => {
+				options.onProgress(res);
+			});
+		}
 	}
 }
 

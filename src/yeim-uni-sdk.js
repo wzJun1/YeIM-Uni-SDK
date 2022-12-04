@@ -67,6 +67,9 @@ class YeIMUniSDK {
 			...options
 		};
 
+		//版本号
+		this.version = "1.0.7";
+
 		//是否首次连接
 		this.firstConnect = true;
 		//socketTask
@@ -125,7 +128,7 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像
 		YeIMUniSDK.prototype.addEventListener = addEventListener; //设置监听器
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener; //移除监听器
-		log(1, "============= YeIMUniSDK 初始化成功！=============")
+		log(1, "============= YeIMUniSDK 初始化成功！版本号：" + instance.version + " =============");
 		return instance;
 	}
 
@@ -190,7 +193,6 @@ class YeIMUniSDK {
 			if (!this.connectTimer) {
 				return;
 			}
-			console.log("开始clearTimeout")
 			clearTimeout(this.connectTimer);
 			this.connectTimer = undefined;
 			let data = JSON.parse(res.data);
@@ -318,7 +320,7 @@ class YeIMUniSDK {
 	 * @param {Object} err
 	 */
 	socketClose(err) {
-		log(1, err);
+		log(1, "YeIMUniSDK断开连接");
 		this.socketLogged = false;
 		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "closed");
 		this.reConnect();
@@ -379,6 +381,8 @@ class YeIMUniSDK {
 		} else if (data.code == 109) {
 			//KICKED_OUT 被踢下线，不允许重连了
 			this.allowReconnect = false;
+			this.clearHeartTimer();
+			uni.closeSocket();
 			emit(YeIMUniSDKDefines.EVENT.KICKED_OUT, true);
 			log(1, '用户：' + this.userId + '，被踢下线了');
 		}
