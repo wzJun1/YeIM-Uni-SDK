@@ -40,7 +40,6 @@ async function getMediaUploadParams() {
  */
 function getUploadURL() {
 	let url = "";
-	//yeim-uni-sdk-test.oss-cn-guangzhou.aliyuncs.com
 	if (instance.mediaUploadParams.storage == "cos") {
 		url = "https://" + instance.mediaUploadParams.bucket + ".cos." + instance.mediaUploadParams.region +
 			".myqcloud.com";
@@ -58,6 +57,58 @@ function getUploadURL() {
  */
 function getVisitURL() {
 	return (instance.mediaUploadParams.customDomain ? instance.mediaUploadParams.customDomain : getUploadURL());
+}
+
+
+/**
+ * 获取上传的文件名称带路径
+ * 
+ * 拼接上传的文件保存目录，默认规则 baseDir/文件类型/日期/文件名称
+ * 
+ * @param {String} filename 文件名称
+ * @param {String} dir 文件类型，目前可选为image、video、audio、files
+ */
+function getUploadFilePath(filename, dir = "files") {
+	let key = filename;
+	//完整文件名，如果设置了baseDir，则 = baseDir/filename，否则 = filename
+	if (!instance.mediaUploadParams.baseDir && !instance.mediaUploadParams.storage == "local") {
+		return key;
+	} else {
+		//文件保存根目录
+		let baseDir = instance.mediaUploadParams.baseDir;
+		//日期目录
+		let dateDir = new Date().toLocaleDateString().split('/').map(item => {
+			if (item < 10) {
+				return '0' + item
+			} else {
+				return item
+			}
+		}).join('');
+
+		//后半路径
+		let suffix = dir + "/" + dateDir + "/" + filename;
+
+		if (instance.mediaUploadParams.storage != "local") {
+			//去除路径前的/
+			if (baseDir.substring(0, 1) == "/") {
+				baseDir = baseDir.substring(1);
+			}
+			//去除路径后的/
+			if (baseDir.substring(baseDir.length - 1, baseDir.length) == "/") {
+				baseDir = baseDir.substring(0, baseDir.length) + baseDir.substring(baseDir.length + 1);
+			}
+			//如果baseDir没了，返回不带baseDir的后半路径
+			if (!baseDir) {
+				return suffix;
+			}
+			//公有云对象存储最终保存路径
+			key = baseDir + "/" + suffix;
+		} else {
+			//本地存储最终保存路径
+			key = suffix;
+		}
+	}
+	return key;
 }
 
 /**
@@ -130,7 +181,7 @@ function upload(options) {
 	//上传URL
 	let uploadUrl = getUploadURL();
 	//上传完成后的资源访问URL
-	let resUrl = getVisitURL() + "/" + filename;
+	let resUrl = getVisitURL() + "/" + getUploadFilePath(filename);
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -141,7 +192,7 @@ function upload(options) {
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename),
 					'success_action_status': 200,
 					'Signature': authorization,
 					'Content-Type': ''
@@ -174,7 +225,7 @@ function upload(options) {
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename),
 					'policy': mediaUploadParams.policyBase64,
 					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
 					'success_action_status': 200,
@@ -197,12 +248,13 @@ function upload(options) {
 			}
 		});
 	} else if (mediaUploadParams.storage == "local") {
+
 		//本地上传 
 		let uploadTask = uni.uploadFile({
 			url: uploadUrl + "/upload",
 			name: 'file',
 			formData: {
-				'key': filename
+				'key': getUploadFilePath(filename)
 			},
 			header: {
 				'token': instance.token
@@ -254,7 +306,7 @@ function uploadImage(options) {
 	//上传URL
 	let uploadUrl = getUploadURL();
 	//上传完成后的资源访问URL
-	let resUrl = getVisitURL() + "/" + filename;
+	let resUrl = getVisitURL() + "/" + getUploadFilePath(filename, "image");
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -265,7 +317,7 @@ function uploadImage(options) {
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename, "image"),
 					'success_action_status': 200,
 					'Signature': authorization,
 					'Content-Type': ''
@@ -314,14 +366,14 @@ function uploadImage(options) {
 		}, 0);
 	} else if (mediaUploadParams.storage == "oss") {
 
-		//阿里云对象存储 
+		//阿里云对象存储   
 		setTimeout(async () => {
 			await buildOSSSignature();
 			let uploadTask = uni.uploadFile({
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename, "image"),
 					'policy': mediaUploadParams.policyBase64,
 					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
 					'success_action_status': 200,
@@ -355,11 +407,6 @@ function uploadImage(options) {
 						thumbnailWidth: thumbnailWidth,
 						thumbnailHeight: thumbnailHeight
 					})
-
-
-					successHandle(options, "success", {
-						url: resUrl
-					})
 				},
 				fail: (err) => {
 					errHandle(options, err);
@@ -372,13 +419,13 @@ function uploadImage(options) {
 			}
 		});
 	} else if (mediaUploadParams.storage == "local") {
-
+		console.log(getUploadFilePath(filename, "image"))
 		//本地上传 
 		let uploadTask = uni.uploadFile({
 			url: uploadUrl + "/upload/image",
 			name: 'file',
 			formData: {
-				'key': filename
+				'key': getUploadFilePath(filename, "image")
 			},
 			header: {
 				'token': instance.token
@@ -431,7 +478,7 @@ function uploadAudio(options) {
 	//上传URL
 	let uploadUrl = getUploadURL();
 	//上传完成后的资源访问URL
-	let resUrl = getVisitURL() + "/" + filename;
+	let resUrl = getVisitURL() + "/" + getUploadFilePath(filename, "audio");
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -442,7 +489,7 @@ function uploadAudio(options) {
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename, "audio"),
 					'success_action_status': 200,
 					'Signature': authorization,
 					'Content-Type': ''
@@ -475,7 +522,7 @@ function uploadAudio(options) {
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename, "audio"),
 					'policy': mediaUploadParams.policyBase64,
 					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
 					'success_action_status': 200,
@@ -503,7 +550,7 @@ function uploadAudio(options) {
 			url: uploadUrl + "/upload",
 			name: 'file',
 			formData: {
-				'key': filename
+				'key': getUploadFilePath(filename, "audio")
 			},
 			header: {
 				'token': instance.token
@@ -552,7 +599,7 @@ function uploadVideo(options) {
 	//上传URL
 	let uploadUrl = getUploadURL();
 	//上传完成后的资源访问URL
-	let resUrl = getVisitURL() + "/" + filename;
+	let resUrl = getVisitURL() + "/" + getUploadFilePath(filename, "video");
 
 	//腾讯云COS对象存储
 	if (mediaUploadParams.storage == "cos") {
@@ -562,7 +609,7 @@ function uploadVideo(options) {
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename, "video"),
 					'success_action_status': 200,
 					'Signature': postAuthorization,
 					'Content-Type': ''
@@ -573,10 +620,11 @@ function uploadVideo(options) {
 				filePath: options.filepath,
 				success: async () => {
 					let getAuthorization = await buildCosAuthorization('get', "/" +
-						filename, '');
+						getUploadFilePath(filename, "video"), '');
 					//下载视频缩略图，腾讯云COS 媒体截图接口：https://cloud.tencent.com/document/product/436/55671
 					uni.downloadFile({
-						url: uploadUrl + "/" + filename + "?ci-process=snapshot&time=1",
+						url: uploadUrl + "/" + getUploadFilePath(filename, "video") +
+							"?ci-process=snapshot&time=1",
 						header: {
 							'Authorization': getAuthorization
 						},
@@ -628,7 +676,7 @@ function uploadVideo(options) {
 				url: uploadUrl,
 				name: 'file',
 				formData: {
-					'key': filename,
+					'key': getUploadFilePath(filename, "video"),
 					'policy': mediaUploadParams.policyBase64,
 					'OSSAccessKeyId': mediaUploadParams.accessKeyId,
 					'success_action_status': 200,
@@ -660,7 +708,7 @@ function uploadVideo(options) {
 			url: uploadUrl + "/upload/video",
 			name: 'file',
 			formData: {
-				'key': filename
+				'key': getUploadFilePath(filename, "video")
 			},
 			header: {
 				'token': instance.token

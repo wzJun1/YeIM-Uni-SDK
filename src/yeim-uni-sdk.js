@@ -68,7 +68,7 @@ class YeIMUniSDK {
 		};
 
 		//版本号
-		this.version = "1.0.7";
+		this.version = "1.0.8";
 
 		//是否首次连接
 		this.firstConnect = true;
