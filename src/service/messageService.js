@@ -419,12 +419,16 @@ function sendIMMessage(options) {
 			'token': instance.token
 		},
 		success: (res) => {
-			//消息保存到YeIMServer成功
-			let result = res.data.data;
-			//保存消息到本地
-			saveMessage(result);
-			//发送成功回调
-			successHandle(options, '接口调用成功', result);
+			if (res.data.code == 200) {
+				//消息保存到YeIMServer成功
+				let result = res.data.data;
+				//保存消息到本地
+				saveMessage(result);
+				//发送成功回调
+				successHandle(options, '接口调用成功', result);
+			} else {
+				errHandle(options, res.data.message);
+			}
 		},
 		fail: (err) => {
 			errHandle(options, err);
@@ -536,8 +540,7 @@ function sendVideoMessage(options) {
  */
 function saveMessage(message) {
 	if (!message.conversationId) {
-		log(1, "message.conversationId 不能为空");
-		return;
+		return log(1, "message.conversationId 不能为空");
 	}
 	let list = getMessageListFromLocal(message.conversationId);
 	let index = list.findIndex(item => {
@@ -667,17 +670,21 @@ function getMessageListFromCloud(options, page = 1) {
 			'token': instance.token
 		},
 		success: (res) => {
-			let list = res.data.data.records;
-			list = list.reverse();
-			list.sort((a, b) => {
-				return a.sequence - b.sequence;
-			});
-			successHandle(options, "接口调用成功", list);
-			//如果是从云端拉取最新一页消息，就存入缓存
-			if (page == 1) {
-				let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(options
-					.conversationId);
-				uni.setStorageSync(key, list);
+			if (res.data.code == 200) {
+				let list = res.data.data.records;
+				list = list.reverse();
+				list.sort((a, b) => {
+					return a.sequence - b.sequence;
+				});
+				successHandle(options, "接口调用成功", list);
+				//如果是从云端拉取最新一页消息，就存入缓存
+				if (page == 1) {
+					let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(options
+						.conversationId);
+					uni.setStorageSync(key, list);
+				}
+			} else {
+				errHandle(options, res.data.message);
 			}
 		},
 		fail: (err) => {
@@ -726,9 +733,13 @@ function revokeMessage(options) {
 		success: (res) => {
 			//消息撤回后，本地操作消息记录
 			//修改消息为撤回
-			options.message.isRevoke = 1;
-			saveMessage(options.message);
-			successHandle(options, "撤回成功", options.message);
+			if (res.data.code == 200) {
+				options.message.isRevoke = 1;
+				saveMessage(options.message);
+				successHandle(options, "撤回成功", options.message);
+			} else {
+				errHandle(options, res.data.message);
+			}
 		},
 		fail: (err) => {
 			log(1, err);

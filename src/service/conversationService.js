@@ -9,6 +9,15 @@ import {
 } from '../func/event';
 import log from '../func/log';
 import md5 from '../utils/md5';
+import {
+	buildSuccessObject,
+	buildErrObject,
+	successHandle,
+	errHandle
+} from "../func/callback";
+
+
+
 /**
  * 单个更新会话
  * 从socket端推送的会话更新
@@ -26,8 +35,52 @@ function saveAndUpdateConversation(conversation) {
 		list.unshift(conversation);
 	}
 	saveConversationList(list);
+
 }
 
+/**
+ * 获取会话详情
+ * @param {Object} conversationId
+ */
+function getConversation(conversationId) {
+	if (!instance.checkLogged()) {
+		return buildErrObject("请登陆后再试");
+	}
+	if (!conversationId) {
+		return buildErrObject("conversationId 不能为空");
+	}
+	let key = "yeim:conversationList:" + md5(instance.userId);
+	let result = uni.getStorageSync(key);
+	result = result ? result : [];
+	let index = result.findIndex(item => {
+		return item.conversationId === conversationId;
+	});
+	if (index !== -1) {
+		return buildSuccessObject("接口调用成功", result[index]);
+	} else {
+		return buildErrObject("没有找到这个会话");
+	}
+
+}
+
+/**
+ * 获取会话列表
+ */
+function getConversationList(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+	let page = options.page;
+	let limit = options.limit;
+	let key = "yeim:conversationList:" + md5(instance.userId);
+	let result = uni.getStorageSync(key);
+	result = result ? result : [];
+	let skipNum = (page - 1) * limit;
+	let list = (skipNum + limit >= result.length) ? result.slice(skipNum, result.length) : result.slice(skipNum,
+		skipNum + limit);
+	successHandle(options, "接口调用成功", list);
+}
 
 /**
  * 从本地获取会话列表
@@ -35,7 +88,7 @@ function saveAndUpdateConversation(conversation) {
 function getConversationListFromLocal(page = 1, limit = 20) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return buildErrObject("请登陆后再试");
 	}
 
 	let key = "yeim:conversationList:" + md5(instance.userId);
@@ -63,7 +116,11 @@ function getConversationListFromCloud(page = 1, limit = 20) {
 			'token': instance.token
 		},
 		success: (res) => {
-			saveConversationList(res.data.data.records);
+			if (res.data.code == 200) {
+				saveConversationList(res.data.data.records);
+			} else {
+				log(1, res.data.message);
+			}
 		},
 		fail: (err) => {
 			log(1, err);
@@ -88,7 +145,7 @@ function saveConversationList(list) {
 function clearConversationUnread(conversationId) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return buildErrObject("请登陆后再试");
 	}
 
 	let key = "yeim:conversationList:" + md5(instance.userId);
@@ -160,7 +217,7 @@ function handlePrivateConversationReadReceipt(conversationId) {
 function deleteConversation(conversationId) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return buildErrObject("请登陆后再试");
 	}
 
 	//1.删除本地会话
@@ -204,6 +261,8 @@ export {
 	saveAndUpdateConversation,
 	clearConversationUnread,
 	deleteConversation,
+	getConversation,
+	getConversationList,
 	getConversationListFromLocal,
 	getConversationListFromCloud,
 	handlePrivateConversationReadReceipt

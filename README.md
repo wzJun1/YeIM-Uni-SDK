@@ -1,5 +1,5 @@
 <p align="center">
-    <strong><font size="5">YeIM-Uni-SDK</font></strong>
+    <strong><font size="6">YeIM-Uni-SDK</font></strong>
     <br>
     <br>
     <strong><font size="5">即时通讯JSSDK</font></strong> 
@@ -13,15 +13,13 @@
 
 `此为社区开源项目，用于学习交流使用，禁止用于非法途径。如作他用所造成的一切法律责任均不由作者承担。` 
 
-
 - 注：不是聊天项目！不是聊天项目！不是聊天项目！只是SDK，通过使用SDK里的一系列接口可实现聊天，跟环信、融云、腾讯云即时通信等等类似的一种可实现聊天的IMSDK。
 
- 
-可`私有化部署`的`全开源`即时通讯`UniAPP JSSDK`，仅需植入 SDK 即可轻松集成聊天、会话、群组（待升级）、资料管理能力，支持基于`UniAPP`的任何项目接入使用，满足通信需要。
+`YeIM-Uni-SDK`是可以`私有化部署`的`全开源`即时通讯`UniAPP JSSDK`，仅需集成 SDK 即可轻松实现聊天能力，支持基于[uni-app](https://uniapp.dcloud.net.cn/)的任何项目接入使用，满足通信需要。
 
-目前仅支持私聊，支持发送的消息类型：文字消息、图片消息、语音消息、视频消息、位置消息、自定义消息。
+支持私聊和群聊，支持发送的消息类型：文字消息、图片消息、语音消息、视频消息、位置消息、自定义消息。
 
-必须搭配`YeIM-Uni-Server`，Server端使用`SpringBoot` Http + WebSocket 开箱即用。
+必须搭配`YeIM-Uni-Server`服务端，开箱即用。
 
 ## 使用文档
 

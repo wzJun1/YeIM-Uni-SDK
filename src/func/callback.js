@@ -23,9 +23,10 @@ function buildErrObject(message, data = null) {
 /**
  * 参数函数成功回调
  * 
- * @param {Object} options
- * @param {Object} message
- * @param {Object} data
+ * @param {Object} options 包含成功回调函数参数的对象
+ * @param {Function} [options.success] - 成功回调 
+ * @param {String} message 消息提示
+ * @param {Object} data 回调参数
  */
 function successHandle(options, message, data = null) {
 	try {
@@ -40,9 +41,10 @@ function successHandle(options, message, data = null) {
 /**
  * 参数函数失败回调
  * 
- * @param {Object} options
- * @param {Object} message
- * @param {Object} data
+ * @param {Object} options 包含失败回调函数参数的对象
+ * @param {Function} [options.fail] - 失败回调 
+ * @param {String} message 消息提示
+ * @param {Object} data 回调参数
  */
 function errHandle(options, message, data = null) {
 	try {

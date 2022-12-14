@@ -27,10 +27,31 @@ import {
 	deleteConversation,
 	saveAndUpdateConversation,
 	clearConversationUnread,
+	getConversation,
+	getConversationList,
 	getConversationListFromLocal,
 	getConversationListFromCloud,
 	handlePrivateConversationReadReceipt
 } from './service/conversationService'
+
+import {
+	createGroup,
+	dissolveGroup,
+	getGroup,
+	getGroupList,
+	transferLeader,
+	updateGroup,
+	joinGroup,
+	leaveGroup,
+	addGroupUsers,
+	removeGroupUsers,
+	setAdminstrator,
+	getGroupApplyList,
+	getGroupUserList,
+	handleApply,
+	setMute
+} from './service/groupService'
+
 import {
 	getMediaUploadParams,
 	upload,
@@ -40,7 +61,9 @@ import {
 	updateUserInfo
 } from './service/userService'
 
-
+/**
+ * SDK实例
+ */
 let instance;
 
 class YeIMUniSDK {
@@ -68,7 +91,7 @@ class YeIMUniSDK {
 		};
 
 		//版本号
-		this.version = "1.0.8";
+		this.version = "1.1.0";
 
 		//是否首次连接
 		this.firstConnect = true;
@@ -99,6 +122,7 @@ class YeIMUniSDK {
 
 		//媒体上传参数
 		this.mediaUploadParams = {};
+
 	}
 
 	/**
@@ -121,13 +145,34 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.sendMessage = sendMessage; //发送消息统一接口
 		YeIMUniSDK.prototype.getMessageList = getMessageList; //获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
 		YeIMUniSDK.prototype.revokeMessage = revokeMessage; //撤回消息
-		YeIMUniSDK.prototype.getConversationList = getConversationListFromLocal; //获取会话列表
+		YeIMUniSDK.prototype.getConversation = getConversation; //获取会话详情
+		YeIMUniSDK.prototype.getConversationList = getConversationList; //获取会话列表
 		YeIMUniSDK.prototype.clearConversationUnread = clearConversationUnread; //清除指定会话未读数
 		YeIMUniSDK.prototype.deleteConversation = deleteConversation; //删除指定会话和聊天记录
 		YeIMUniSDK.prototype.getUserInfo = getUserInfo; //获取用户资料
 		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像
 		YeIMUniSDK.prototype.addEventListener = addEventListener; //设置监听器
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener; //移除监听器
+
+		YeIMUniSDK.prototype.createGroup = createGroup; //创建群组
+		YeIMUniSDK.prototype.dissolveGroup = dissolveGroup; //解散群组
+		YeIMUniSDK.prototype.updateGroup = updateGroup; //更新群组资料
+		YeIMUniSDK.prototype.getGroup = getGroup; //获取群组资料
+		YeIMUniSDK.prototype.transferLeader = transferLeader; //转让群主
+		YeIMUniSDK.prototype.getGroupList = getGroupList; //获取我的群组列表
+
+		YeIMUniSDK.prototype.joinGroup = joinGroup; //申请入群
+		YeIMUniSDK.prototype.leaveGroup = leaveGroup; //退出群组
+		YeIMUniSDK.prototype.addGroupUsers = addGroupUsers; //添加群成员
+		YeIMUniSDK.prototype.getGroupUserList = getGroupUserList; //获取群成员列表
+		YeIMUniSDK.prototype.removeGroupUsers = removeGroupUsers; //移除群成员
+		YeIMUniSDK.prototype.setAdminstrator = setAdminstrator; //设置群管理员
+		YeIMUniSDK.prototype.setMute = setMute; //禁言群成员
+
+		YeIMUniSDK.prototype.getGroupApplyList = getGroupApplyList; //获取名下群组用户入群申请列表
+		YeIMUniSDK.prototype.handleApply = handleApply; //处理入群申请
+
+
 		log(1, "============= YeIMUniSDK 初始化成功！版本号：" + instance.version + " =============");
 		return instance;
 	}
@@ -171,10 +216,12 @@ class YeIMUniSDK {
 		this.socketTask = uni.connectSocket({
 			url: url,
 			success: (res) => {
-
+				console.log("connectSocket success：")
+				console.log(res)
 			},
 			fail: (err) => {
-
+				console.log("connectSocket fail：")
+				console.log(err)
 			},
 			complete: () => {}
 		});
@@ -182,15 +229,21 @@ class YeIMUniSDK {
 		this.firstConnect = false;
 
 		//连接异常
+		if (this.connectTimer) {
+			clearTimeout(this.connectTimer);
+			this.connectTimer = undefined;
+		}
 		this.connectTimer = setTimeout(() => {
 			this.connectTimer = undefined;
 			log(1, "连接服务端失败，请检查配置");
 			return errHandle(options, "网络异常，请稍后重试");
-		}, 2000);
+		}, this.defaults.reConnectInterval + 1000);
 
 		//临时设置监听onMessage
 		this.socketTask.onMessage((res) => {
-			if (!this.connectTimer) {
+			if (this.socketLogged) {
+				clearTimeout(this.connectTimer);
+				this.connectTimer = undefined;
 				return;
 			}
 			clearTimeout(this.connectTimer);
@@ -207,6 +260,7 @@ class YeIMUniSDK {
 				this.token = options.token;
 				//设置socket state（socketLogged）登陆成功
 				this.socketLogged = true;
+				this.reConnectNum = 0;
 				log(1, "IMServer登陆成功，登陆用户：" + options.userId)
 				//1.登陆成功后从服务端获取一下全部会话，并发送事件CONVERSATION_LIST_CHANGED
 				getConversationListFromCloud(1, 100000);

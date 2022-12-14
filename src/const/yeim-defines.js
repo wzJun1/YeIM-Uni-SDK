@@ -21,6 +21,19 @@ YeIMUniSDKDefines.MESSAGE_TYPE.VIDEO = 'video'; //小视频消息
 YeIMUniSDKDefines.MESSAGE_TYPE.LOCATION = 'location'; //位置消息
 YeIMUniSDKDefines.MESSAGE_TYPE.CUSTOM = 'custom'; //自定义消息
 
+//群组
+YeIMUniSDKDefines.GROUP = {};
+//群申请处理方式 
+YeIMUniSDKDefines.GROUP.JOINMODE = {};
+YeIMUniSDKDefines.GROUP.JOINMODE.FREE = 1; //自有加入，不需要申请和审核，不需要被邀请人允许。
+YeIMUniSDKDefines.GROUP.JOINMODE.CHECK = 2; //验证加入，需要申请，以及群主或管理员的同意才能入群
+YeIMUniSDKDefines.GROUP.JOINMODE.FORBIDDEN = 3; //禁止加入
+//入群申请处理结果
+YeIMUniSDKDefines.GROUP.APPLYSTATUS = {};
+YeIMUniSDKDefines.GROUP.APPLYSTATUS.PENDING = 1; //待处理
+YeIMUniSDKDefines.GROUP.APPLYSTATUS.AGREE = 2; //同意
+YeIMUniSDKDefines.GROUP.APPLYSTATUS.REFUSE = 3; //拒绝
+
 export {
 	YeIMUniSDKDefines
 };
