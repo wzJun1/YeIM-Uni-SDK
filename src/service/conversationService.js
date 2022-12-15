@@ -17,14 +17,16 @@ import {
 } from "../func/callback";
 
 
-
 /**
- * 单个更新会话
- * 从socket端推送的会话更新
- * @param {Object} conversation
+ * 更新、保存单个会话到本地会话列表、发送会话列表更新事件
+ * 
+ * @param {Conversation} conversation - 会话对象
+ * @return {void}
  */
 function saveAndUpdateConversation(conversation) {
-	let list = getConversationListFromLocal(1, 100000);
+	let key = "yeim:conversationList:" + md5(instance.userId);
+	let list = uni.getStorageSync(key);
+	list = list ? list : [];
 	let index = list.findIndex(item => {
 		return item.conversationId === conversation.conversationId
 	});
@@ -35,12 +37,13 @@ function saveAndUpdateConversation(conversation) {
 		list.unshift(conversation);
 	}
 	saveConversationList(list);
-
 }
 
 /**
- * 获取会话详情
- * @param {Object} conversationId
+ * 根据会话ID获取本地会话详情
+ * 
+ * @param {String} conversationId - 会话ID
+ * @return {Conversation} conversation
  */
 function getConversation(conversationId) {
 	if (!instance.checkLogged()) {
@@ -60,11 +63,17 @@ function getConversation(conversationId) {
 	} else {
 		return buildErrObject("没有找到这个会话");
 	}
-
 }
 
 /**
- * 获取会话列表
+ * 获取本地会话列表
+ * 
+ * @param {Object} options - 参数对象   
+ *   
+ * @param {String} options.page - 页码
+ * @param {String} options.limit - 每页数量
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调  
  */
 function getConversationList(options) {
 
@@ -83,32 +92,16 @@ function getConversationList(options) {
 }
 
 /**
- * 从本地获取会话列表
+ * 从云端获取会话列表保存到本地、并发送会话列表更新事件
+ * 
+ * @return {void}
  */
-function getConversationListFromLocal(page = 1, limit = 20) {
-
-	if (!instance.checkLogged()) {
-		return buildErrObject("请登陆后再试");
-	}
-
-	let key = "yeim:conversationList:" + md5(instance.userId);
-	let result = uni.getStorageSync(key);
-	result = result ? result : [];
-	let skipNum = (page - 1) * limit;
-	let list = (skipNum + limit >= result.length) ? result.slice(skipNum, result.length) : result.slice(skipNum,
-		skipNum + limit);
-	return list;
-}
-
-/**
- * 从服务端获取会话列表
- */
-function getConversationListFromCloud(page = 1, limit = 20) {
+function saveCloudConversationListToLocal() {
 	uni.request({
 		url: instance.defaults.baseURL + "/conversation/list",
 		data: {
-			page,
-			limit,
+			page: 1,
+			limit: 999999,
 		},
 		method: 'GET',
 		header: {
@@ -129,8 +122,10 @@ function getConversationListFromCloud(page = 1, limit = 20) {
 }
 
 /**
- * 保存会话并发送事件
- * @param {Object} list
+ * 保存会话列表到本地，并发送会话更新事件
+ * 
+ * @param {Array<Conversation>} list - 会话对象数组
+ * @return {void}
  */
 function saveConversationList(list) {
 	let key = "yeim:conversationList:" + md5(instance.userId);
@@ -140,7 +135,11 @@ function saveConversationList(list) {
 
 /**
  * 清除指定会话未读数
- * @param {Object} conversationId
+ * 
+ * 云端同时发送给对端已读事件（私聊）
+ * 
+ * @param {String} conversationId - 会话ID
+ * @return {void}
  */
 function clearConversationUnread(conversationId) {
 
@@ -180,8 +179,10 @@ function clearConversationUnread(conversationId) {
 }
 
 /**
- * 处理私聊会话已读回执
+ * 收到某对端会话消息已读事件，处理本地会话消息已读字段，并发送给当前用户对端会话已读事件 
+ * 
  * @param {Object} conversationId
+ * @return {void}
  */
 function handlePrivateConversationReadReceipt(conversationId) {
 	if (!conversationId) {
@@ -211,8 +212,10 @@ function handlePrivateConversationReadReceipt(conversationId) {
 }
 
 /**
- * 删除会话和会话里的聊天记录
+ * 根据会话ID删除会话和聊天记录（包括云端）
+ * 
  * @param {Object} conversationId
+ * @return {void}
  */
 function deleteConversation(conversationId) {
 
@@ -263,7 +266,6 @@ export {
 	deleteConversation,
 	getConversation,
 	getConversationList,
-	getConversationListFromLocal,
-	getConversationListFromCloud,
+	saveCloudConversationListToLocal,
 	handlePrivateConversationReadReceipt
 }

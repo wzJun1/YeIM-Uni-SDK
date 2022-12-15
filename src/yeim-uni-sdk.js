@@ -29,8 +29,7 @@ import {
 	clearConversationUnread,
 	getConversation,
 	getConversationList,
-	getConversationListFromLocal,
-	getConversationListFromCloud,
+	saveCloudConversationListToLocal,
 	handlePrivateConversationReadReceipt
 } from './service/conversationService'
 
@@ -62,22 +61,39 @@ import {
 } from './service/userService'
 
 /**
- * SDK实例
+ * YeIMUniSDK实例化对象
  */
 let instance;
 
+/**
+ * YeIMUniSDK 
+ * @class  
+ */
 class YeIMUniSDK {
 
+	/**
+	 * @constructs
+	 */
 	constructor(options = {}) {
-		//全局配置参数
+		/**
+		 * 全局配置参数
+		 */
 		this.defaults = {
-			//事件前缀
+			/**
+			 * 事件前缀
+			 */
 			eventPrefix: 'YeIM_',
-			// 最大重连次数，0不限制一直重连
+			/**
+			 * 最大重连次数，0不限制一直重连
+			 */
 			reConnectTotal: 15,
-			// 重连时间间隔
+			/**
+			 * 重连时间间隔
+			 */
 			reConnectInterval: 3000,
-			//心跳时间间隔(默认30s)
+			/**
+			 * 心跳时间间隔(默认30s)
+			 */
 			heartInterval: 30000,
 			/**
 			 * 	日志等级
@@ -86,41 +102,68 @@ class YeIMUniSDK {
 			 *	2 无日志级别，SDK 将不打印任何日志
 			 */
 			logLevel: 0,
-			//IM参数
+			/**
+			 * SDK初始化参数
+			 */
 			...options
 		};
 
-		//版本号
-		this.version = "1.1.0";
+		/**
+		 * 版本号
+		 */
+		this.version = "1.1.1";
 
-		//是否首次连接
+		/**
+		 * 是否首次连接
+		 */
 		this.firstConnect = true;
-		//socketTask
+		/**
+		 * socketTask
+		 */
 		this.socketTask = undefined;
-		//是否已登陆YeIMServer
+		/**
+		 * 是否已登陆YeIMServer
+		 */
 		this.socketLogged = false;
-
-		//是否允许重连
+		/**
+		 * 是否允许重连
+		 */
 		this.allowReconnect = true;
-		//重连锁，防止多重调用
+		/**
+		 * 重连锁，防止多重调用
+		 */
 		this.lockReconnect = false;
-		//重连次数
+		/**
+		 * 重连次数
+		 */
 		this.reConnectNum = 0;
-		//连接定时器
+		/**
+		 * 登录连接超时定时器
+		 */
 		this.connectTimer = undefined;
-		//心跳定时器
+		/**
+		 * 心跳定时器
+		 */
 		this.heartTimer = null;
-		//检测定时器
+		/**
+		 * 检测定时器
+		 */
 		this.checkTimer = null;
-
-		//用户信息
+		/**
+		 * 用户信息
+		 */
 		this.user = {};
-		//用户ID
+		/**
+		 * 用户ID
+		 */
 		this.userId = undefined;
-		//登陆token
+		/**
+		 * 登陆token
+		 */
 		this.token = undefined;
-
-		//媒体上传参数
+		/**
+		 * 媒体上传参数
+		 */
 		this.mediaUploadParams = {};
 
 	}
@@ -202,31 +245,22 @@ class YeIMUniSDK {
 			return errHandle(options, "token 不能为空");
 		}
 
-		//首次连接成功后，设置websocket相关监听
-		if (this.firstConnect) {
-			uni.onSocketOpen(this.socketOpen.bind(this));
-			uni.onSocketError(this.socketError.bind(this));
-			uni.onSocketClose(this.socketClose.bind(this));
-			uni.onSocketMessage(this.socketMessage.bind(this));
-		}
 
 		//拼接websocket连接url
 		let url = this.defaults.socketURL + "/" + options.userId + "/" + options.token;
 		//创建websocket连接
 		this.socketTask = uni.connectSocket({
 			url: url,
-			success: (res) => {
-				console.log("connectSocket success：")
-				console.log(res)
-			},
-			fail: (err) => {
-				console.log("connectSocket fail：")
-				console.log(err)
-			},
+			success: () => {},
+			fail: () => {},
 			complete: () => {}
 		});
-		//连接后，设置首次连接（firstConnect）为false
-		this.firstConnect = false;
+
+		//设置websocket相关监听
+		this.socketTask.onOpen(this.socketOpen.bind(this));
+		this.socketTask.onClose(this.socketClose.bind(this));
+		this.socketTask.onError(this.socketError.bind(this));
+		this.socketTask.onMessage(this.socketMessage.bind(this));
 
 		//连接异常
 		if (this.connectTimer) {
@@ -251,8 +285,6 @@ class YeIMUniSDK {
 			let data = JSON.parse(res.data);
 			//监听到登陆成功
 			if (data.code == 201) {
-				//移除临时监听
-				this.socketTask.onMessage(() => {});
 				//设置用户相关参数
 				let user = data.data.user;
 				this.user = user;
@@ -261,9 +293,10 @@ class YeIMUniSDK {
 				//设置socket state（socketLogged）登陆成功
 				this.socketLogged = true;
 				this.reConnectNum = 0;
+
 				log(1, "IMServer登陆成功，登陆用户：" + options.userId)
 				//1.登陆成功后从服务端获取一下全部会话，并发送事件CONVERSATION_LIST_CHANGED
-				getConversationListFromCloud(1, 100000);
+				saveCloudConversationListToLocal(1, 100000);
 				//2.获取媒体上传参数
 				getMediaUploadParams();
 				return successHandle(options, "登陆成功", user);
@@ -279,27 +312,26 @@ class YeIMUniSDK {
 	 */
 	disConnect() {
 		this.allowReconnect = false;
-		uni.closeSocket();
+		this.socketTask.close();
+		this.socketTask = undefined;
 	}
 
 	/**
 	 * 重连
 	 */
 	reConnect() {
-		if (this.allowReconnect && !this.lockReconnect) {
 
+		if (this.allowReconnect && !this.lockReconnect) {
 			//没有用户信息，取消重连
 			if (!this.userId || !this.token) {
 				this.allowReconnect = false;
 				return;
 			}
-
 			//设置了最大重连次数，并且已经到了限制，不再连。
 			if (this.defaults.reConnectTotal > 0 && this.defaults.reConnectTotal <= this.reConnectNum) {
 				this.allowReconnect = false;
 				return;
 			}
-
 			this.reConnectNum++;
 			this.lockReconnect = true;
 			//没连接上会一直重连，设置延迟避免请求过多
@@ -307,10 +339,14 @@ class YeIMUniSDK {
 			emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "connecting");
 			setTimeout(() => {
 				log(1, "IMSDK 正在第" + this.reConnectNum + "次重连")
-				this.connect({
-					userId: this.userId,
-					token: this.token
-				});
+				try {
+					this.connect({
+						userId: this.userId,
+						token: this.token
+					});
+				} catch (e) {
+					console.log(e)
+				}
 				this.lockReconnect = false;
 			}, this.defaults.reConnectInterval); //这里设置重连间隔(ms) 
 
@@ -334,21 +370,23 @@ class YeIMUniSDK {
 	 */
 	startHeartTimer() {
 		this.clearHeartTimer();
-		this.heartTimer = setTimeout(() => {
-			if (this.readyState() == 1) {
-				//log(0, "YeIMUniSDK 心跳：" + new Date());
-				let heartJson = {
-					type: 'heart',
-					data: 'ping'
-				};
-				uni.sendSocketMessage({
-					data: JSON.stringify(heartJson)
-				});
-				this.checkTimer = setTimeout(() => {
-					uni.closeSocket();
-				}, this.defaults.heartInterval)
-			}
-		}, this.defaults.heartInterval)
+		if (this.socketTask) {
+			this.heartTimer = setTimeout(() => {
+				if (this.readyState() == 1) {
+					//log(0, "YeIMUniSDK 心跳：" + new Date());
+					let heartJson = {
+						type: 'heart',
+						data: 'ping'
+					};
+					this.socketTask.send({
+						data: JSON.stringify(heartJson)
+					});
+					this.checkTimer = setTimeout(() => {
+						uni.closeSocket();
+					}, this.defaults.heartInterval)
+				}
+			}, this.defaults.heartInterval)
+		}
 	}
 
 	/**
@@ -366,6 +404,7 @@ class YeIMUniSDK {
 	 * @param {Object} info
 	 */
 	socketOpen(info) {
+		log(1, "YeIMUniSDK WebSocket成功连接");
 		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "connected");
 	}
 
@@ -374,8 +413,9 @@ class YeIMUniSDK {
 	 * @param {Object} err
 	 */
 	socketClose(err) {
-		log(1, "YeIMUniSDK断开连接");
+		log(1, "YeIMUniSDK WebSocket断开连接");
 		this.socketLogged = false;
+		this.socketTask = undefined;
 		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "closed");
 		this.reConnect();
 	}
@@ -421,6 +461,7 @@ class YeIMUniSDK {
 			//2. 发送消息接收事件
 			emit(YeIMUniSDKDefines.EVENT.MESSAGE_RECEIVED, message);
 
+			//3.下版本弃用
 			//3.通知socket端我已收到（为保证双方消息投递可靠性，发送消息使用http协议确保发送成功。而接收消息使用到了websocket，所以这里发一条回调消息通知Server端这条消息确认收到。）
 			this.notifySocketMessageReceived(message);
 
@@ -443,7 +484,10 @@ class YeIMUniSDK {
 	}
 
 	/**
+	 * 
 	 * socket message消息接收回调
+	 * 这里不要了，下个版本去掉。YeIM的收发消息逻辑不需要ack
+	 * @deprecated
 	 * @param {Object} message
 	 */
 	notifySocketMessageReceived(message) {
@@ -452,7 +496,7 @@ class YeIMUniSDK {
 			type: 'received_call',
 			data: message
 		};
-		uni.sendSocketMessage({
+		this.socketTask.send({
 			data: JSON.stringify(socketJson),
 			fail: (err) => {
 				log(1, err)
@@ -475,7 +519,6 @@ class YeIMUniSDK {
 
 
 }
-
 
 export {
 	instance,

@@ -23,19 +23,23 @@ import md5 from '../utils/md5';
 
 import formatMessage from '../func/formatMessage';
 
-import CryptoJS from '../utils/CryptoJS';
-
 import log from '../func/log';
 
+
 /**
- * 创建文本消息
+ * 创建文本消息 
  * 
- * @param {Object} options
- * @param {String} options.toId @description 接受者用户ID
- * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
- * @param {String} options.body.text @description 需要发送的文本消息内容
+ * @param {Object} options - 创建消息参数对象
  * 
- * @return Message
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { text: "" }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 文本消息对象
+ * @param {String} options.body.text - 文本消息内容
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
  */
 function createTextMessage(options) {
 
@@ -73,16 +77,23 @@ function createTextMessage(options) {
 
 /**
  * 创建图片消息
- * @description 仅支持单张图片
  * 
- * @param {Object} options
- * @param {String} options.toId @description 接受者用户ID
- * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
- * @param {String} options.body.file.tempFilePath @description 本地图片文件临时路径
- * @param {Number} options.body.file.width @description 图片宽度
- * @param {Number} options.body.file.height @description 图片高度
+ * 仅支持单张图片
  * 
- * @return Message
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { file: { tempFilePath: "", width: 100, height: 100 } }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 图片消息对象
+ * @param {Object} options.body.file - 图片消息对象
+ * @param {String} options.body.file.tempFilePath - 本地图片文件临时路径
+ * @param {Number} options.body.file.width - 图片宽度
+ * @param {Number} options.body.file.height - 图片高度
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
  */
 function createImageMessage(options) {
 
@@ -139,17 +150,22 @@ function createImageMessage(options) {
 }
 
 /**
- * 创建位置消息
+ * 创建位置消息 
  * 
- * @param {Object} options
- * @param {String} options.toId @description 接受者用户ID
- * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
- * @param {String} options.body.address @description 地址名称
- * @param {String} options.body.description @description 地址详细描述
- * @param {Double} options.body.longitude @description 经度
- * @param {Double} options.body.latitude @description 纬度
+ * @param {Object} options - 创建消息参数对象
  * 
- * @return Message
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { address: "地址名称", description: "地址详细描述", longitude: 105.000000, latitude: 31.000000 }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 位置消息对象
+ * @param {String} options.body.address - 地址名称
+ * @param {String} options.body.description - 地址详细描述
+ * @param {Number} options.body.longitude - 经度
+ * @param {Number} options.body.latitude - 纬度
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
  */
 function createLocationMessage(options) {
 
@@ -203,13 +219,21 @@ function createLocationMessage(options) {
 /**
  * 创建语音消息
  * 
- * @param {Object} options
- * @param {String} options.toId @description 接受者用户ID
- * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
- * @param {String} options.body.file.tempFilePath @description 本地音频文件临时路径
- * @param {String} options.body.file.duration @description 音频时长，单位秒
+ * 仅支持AAC格式音频
  * 
- * @return Message
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { file: { tempFilePath: "", duration: 10 } }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 音频消息对象
+ * @param {Object} options.body.file - 音频文件信息
+ * @param {String} options.body.file.tempFilePath - 本地音频文件临时路径
+ * @param {Number} options.body.file.duration - 音频时长，单位秒 
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
  */
 function createAudioMessage(options) {
 
@@ -259,16 +283,22 @@ function createAudioMessage(options) {
 }
 
 /**
- * 创建小视频消息
+ * 创建小视频消息 
  * 
- * @param {Object} options
- * @param {String} options.toId @description 接受者用户ID
- * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
- * @param {String} options.body.file.tempFilePath @description 本地小视频文件临时路径
- * @param {Number} options.body.file.width @description 视频宽度
- * @param {Number} options.body.file.height @description 视频高度
+ * @param {Object} options - 创建消息参数对象
  * 
- * @return Message
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { file: { tempFilePath: "", width: 100, height: 100 } }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 视频消息对象
+ * @param {Object} options.body.file - 视频文件信息
+ * @param {String} options.body.file.tempFilePath - 本地小视频文件临时路径
+ * @param {Number} options.body.file.width - 视频宽度
+ * @param {Number} options.body.file.height - 视频高度
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
  */
 function createVideoMessage(options) {
 
@@ -323,15 +353,20 @@ function createVideoMessage(options) {
 }
 
 /**
- * 创建自定义消息
- * @description 自定义消息内容放在body字段
+ * 创建自定义消息 
  * 
- * @param {Object} options
- * @param {String} options.toId @description 接受者用户ID
- * @param {String} options.conversationType @description 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
- * @param {String|Object} options.body @description 自定义消息内容
+ * 自定义消息内容放在body字段 
+ *
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: {} }
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object|String} options.body - 自定义消息内容 
+ * 
+ * @return {(Object|Message)} Message 消息对象
  *  
- * @return Message
  */
 function createCustomMessage(options) {
 
@@ -375,6 +410,26 @@ function createCustomMessage(options) {
  * @param {Function} options.success @description 成功回调
  * @param {Function} options.fail @description 失败回调
  */
+
+/**
+ *  
+ * 发送消息统一入口 
+ * 
+ * @param {Object} options - 参数对象    
+ * 
+ * { "message": message, success: (result) => {}, fail: (error) => {} }
+ * 
+ * @param {Message} options.message - 消息对象    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
+ * @example  
+ * sendMessage({
+       message: message, 
+       success: (result) => {},
+       fail: (error) => {}
+   });
+ */
 function sendMessage(options) {
 
 	if (!instance.checkLogged()) {
@@ -401,12 +456,17 @@ function sendMessage(options) {
 }
 
 /**
- * 发送普通文本消息
+ *  
+ * 发送普通文本消息 
  * 
- * @param {Object} options
- * @param {Object} options.message @description 消息
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * @private
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Message} options.message - 消息对象    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function sendIMMessage(options) {
 	let message = options.message;
@@ -437,12 +497,17 @@ function sendIMMessage(options) {
 }
 
 /**
- * 发送图片消息
+ *  
+ * 发送图片消息 
  * 
- * @param {Object} options
- * @param {Object} options.message @description 消息
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * @private
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Message} options.message - 消息对象    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function sendImageMessage(options) {
 	let message = options.message;
@@ -471,12 +536,17 @@ function sendImageMessage(options) {
 }
 
 /**
- * 发送aac语音消息
  *  
- * @param {Object} options
- * @param {Object} options.message @description 消息
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * 发送aac语音消息 
+ * 
+ * @private
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Message} options.message - 消息对象    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function sendAudioMessage(options) {
 	let message = options.message;
@@ -500,14 +570,18 @@ function sendAudioMessage(options) {
 	})
 }
 
-
 /**
+ *  
  * 发送小视频消息
  * 
- * @param {Object} options
- * @param {Object} options.message @description 消息
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * @private
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Message} options.message - 消息对象    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function sendVideoMessage(options) {
 	let message = options.message;
@@ -534,9 +608,13 @@ function sendVideoMessage(options) {
 }
 
 /**
+ *  
  * 保存消息到本地
  * 
- * @param {Object} message
+ * @private 
+ * 
+ * @param {Message} message - 消息对象     
+ * @return {void}
  */
 function saveMessage(message) {
 	if (!message.conversationId) {
@@ -559,13 +637,16 @@ function saveMessage(message) {
 }
 
 /**
- * 获取历史消息记录
+ *  
+ * 获取历史消息记录 
  * 
- * @param {Object} options
- * @param {Number} options.page @description 页码 @default 1
- * @param {String} options.conversationId @description 会话ID
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Number} options.page - 页码    
+ * @param {String} options.conversationId - 会话ID    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function getMessageList(options) {
 
@@ -634,9 +715,11 @@ function getMessageList(options) {
 }
 
 /**
- * 从本地缓存获取历史消息记录
+ *  
+ * 从本地获取历史消息记录  
  * 
- * @param {String} conversationId @description 会话ID
+ * @param {String} conversationId - 会话ID         
+ * @return {Array<Message>} MessageList
  */
 function getMessageListFromLocal(conversationId) {
 	let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(conversationId);
@@ -649,13 +732,16 @@ function getMessageListFromLocal(conversationId) {
 }
 
 /**
- * 从Server获取历史消息记录
+ *  
+ * 从云端获取历史消息记录 
  * 
- * @param {Object} options
- * @param {Number} page @description 页码 @default 1
- * @param {Object} options.conversationId @description 会话ID
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Number} options.page - 页码    
+ * @param {String} options.conversationId - 会话ID    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function getMessageListFromCloud(options, page = 1) {
 	uni.request({
@@ -695,12 +781,15 @@ function getMessageListFromCloud(options, page = 1) {
 }
 
 /**
- * 撤回消息
+ *  
+ * 撤回消息 
  * 
- * @param {Object} options
- * @param {Message} message @description 消息
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Message} message - 消息对象        
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function revokeMessage(options) {
 

@@ -7,7 +7,17 @@ import {
 	errHandle
 } from '../func/callback';
 
-
+/**
+ *  
+ * 获取用户信息 
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {String} options.userId - 用户ID      
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
+ */
 function getUserInfo(options) {
 
 	if (!instance.checkLogged()) {
@@ -37,10 +47,17 @@ function getUserInfo(options) {
 	});
 
 }
-
 /**
- * 更新用户资料
- * @param {Object} options
+ *  
+ * 更新我的用户资料 
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {String} options.nickname - 昵称      
+ * @param {String} options.avatarUrl - 头像地址      
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
  */
 function updateUserInfo(options) {
 

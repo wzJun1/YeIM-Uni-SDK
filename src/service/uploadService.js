@@ -584,9 +584,9 @@ function uploadAudio(options) {
  * 上传视频
  *
  * @param {Object} options
- * @param {String} options.filename @description 文件名称
- * @param {String} options.filepath @description 本地文件临时路径
- * @param {Function} options.onProgress @description 上传进度回调
+ * @param {String} options.filename - 文件名称
+ * @param {String} options.filepath - 本地文件临时路径
+ * @param {(result)=>{}} options.onProgress - 上传进度回调
  */
 function uploadVideo(options) {
 	if (!instance.mediaUploadParams) {
