@@ -461,10 +461,6 @@ class YeIMUniSDK {
 			//2. 发送消息接收事件
 			emit(YeIMUniSDKDefines.EVENT.MESSAGE_RECEIVED, message);
 
-			//3.下版本弃用
-			//3.通知socket端我已收到（为保证双方消息投递可靠性，发送消息使用http协议确保发送成功。而接收消息使用到了websocket，所以这里发一条回调消息通知Server端这条消息确认收到。）
-			this.notifySocketMessageReceived(message);
-
 		} else if (data.code == 203) {
 			//收到会话更新
 			let conversation = data.data;
@@ -481,27 +477,6 @@ class YeIMUniSDK {
 			emit(YeIMUniSDKDefines.EVENT.KICKED_OUT, true);
 			log(1, '用户：' + this.userId + '，被踢下线了');
 		}
-	}
-
-	/**
-	 * 
-	 * socket message消息接收回调
-	 * 这里不要了，下个版本去掉。YeIM的收发消息逻辑不需要ack
-	 * @deprecated
-	 * @param {Object} message
-	 */
-	notifySocketMessageReceived(message) {
-		//尝试在线发送
-		let socketJson = {
-			type: 'received_call',
-			data: message
-		};
-		this.socketTask.send({
-			data: JSON.stringify(socketJson),
-			fail: (err) => {
-				log(1, err)
-			}
-		});
 	}
 
 
