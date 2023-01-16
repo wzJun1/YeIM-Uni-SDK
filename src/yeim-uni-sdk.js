@@ -1,3 +1,15 @@
+/**
+ * 
+ * YeIM-Uni-SDK (https://github.com/wzJun1/YeIM-Uni-SDK)
+ * 可以私有化部署的全开源即时通讯UniAPP JSSDK，仅需集成 SDK 即可轻松实现聊天能力，支持基于uni-app的任何项目接入使用，满足通信需要。
+ * 
+ * @author wzJun1
+ * @link https://github.com/wzJun1/YeIM-Uni-SDK 
+ * @doc https://wzjun1.netlify.app/ye_plugins/sdk/yeimunisdk
+ * @copyright wzJun1 2022, 2023. All rights reserved.
+ * @license Apache-2.0
+ */
+
 import {
 	YeIMUniSDKDefines
 } from './const/yeim-defines';
@@ -55,10 +67,18 @@ import {
 	getMediaUploadParams,
 	upload,
 } from './service/uploadService'
+
 import {
 	getUserInfo,
 	updateUserInfo
 } from './service/userService'
+
+import {
+	setPushPermissions,
+	initNotificationChannel,
+	bindAppUserPushCID
+} from './service/pushService'
+
 
 /**
  * YeIMUniSDK实例化对象
@@ -79,6 +99,14 @@ class YeIMUniSDK {
 		 * 全局配置参数
 		 */
 		this.defaults = {
+			/**
+			 * http url
+			 */
+			baseURL: undefined,
+			/**
+			 * socket url
+			 */
+			socketURL: undefined,
 			/**
 			 * 事件前缀
 			 */
@@ -103,7 +131,24 @@ class YeIMUniSDK {
 			 */
 			logLevel: 0,
 			/**
-			 * SDK初始化参数
+			 * APP离线通知配置
+			 */
+			notification: {
+				/**
+				 *  登录后是否自动检测通知权限
+				 */
+				autoPermission: false,
+				/**
+				 *  手机安卓8.0以上的通知渠道ID（需要申请）
+				 */
+				oppoChannelId: 'Default', //OPPO手机安卓8.0以上的通知渠道ID
+				/**
+				 * 小米手机重要级别消息通知渠道ID（需要申请，一般默认为high_system）
+				 */
+				xiaomiChannelId: 'high_system'
+			},
+			/**
+			 * SDK自定义初始化参数
 			 */
 			...options
 		};
@@ -111,7 +156,7 @@ class YeIMUniSDK {
 		/**
 		 * 版本号
 		 */
-		this.version = "1.1.1";
+		this.version = "1.1.3";
 
 		/**
 		 * 是否首次连接
@@ -144,11 +189,11 @@ class YeIMUniSDK {
 		/**
 		 * 心跳定时器
 		 */
-		this.heartTimer = null;
+		this.heartTimer = undefined;
 		/**
 		 * 检测定时器
 		 */
-		this.checkTimer = null;
+		this.checkTimer = undefined;
 		/**
 		 * 用户信息
 		 */
@@ -165,6 +210,16 @@ class YeIMUniSDK {
 		 * 媒体上传参数
 		 */
 		this.mediaUploadParams = {};
+
+		/**
+		 * 移动端推送标识符	
+		 */
+		this.mobileDeviceId = undefined;
+
+		/**
+		 * APP是否在前台
+		 */
+		this.inApp = true;
 
 	}
 
@@ -196,14 +251,12 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像
 		YeIMUniSDK.prototype.addEventListener = addEventListener; //设置监听器
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener; //移除监听器
-
 		YeIMUniSDK.prototype.createGroup = createGroup; //创建群组
 		YeIMUniSDK.prototype.dissolveGroup = dissolveGroup; //解散群组
 		YeIMUniSDK.prototype.updateGroup = updateGroup; //更新群组资料
 		YeIMUniSDK.prototype.getGroup = getGroup; //获取群组资料
 		YeIMUniSDK.prototype.transferLeader = transferLeader; //转让群主
 		YeIMUniSDK.prototype.getGroupList = getGroupList; //获取我的群组列表
-
 		YeIMUniSDK.prototype.joinGroup = joinGroup; //申请入群
 		YeIMUniSDK.prototype.leaveGroup = leaveGroup; //退出群组
 		YeIMUniSDK.prototype.addGroupUsers = addGroupUsers; //添加群成员
@@ -211,9 +264,9 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.removeGroupUsers = removeGroupUsers; //移除群成员
 		YeIMUniSDK.prototype.setAdminstrator = setAdminstrator; //设置群管理员
 		YeIMUniSDK.prototype.setMute = setMute; //禁言群成员
-
 		YeIMUniSDK.prototype.getGroupApplyList = getGroupApplyList; //获取名下群组用户入群申请列表
-		YeIMUniSDK.prototype.handleApply = handleApply; //处理入群申请
+		YeIMUniSDK.prototype.handleApply = handleApply; //处理入群申请 
+
 
 
 		log(1, "============= YeIMUniSDK 初始化成功！版本号：" + instance.version + " =============");
@@ -290,15 +343,49 @@ class YeIMUniSDK {
 				this.user = user;
 				this.userId = options.userId;
 				this.token = options.token;
+				//设置推送参数
+				let pushConfig = data.data.pushConfig;
+				if (pushConfig.oppoChannelId) {
+					this.defaults.notification.oppoChannelId = pushConfig.oppoChannelId;
+				}
+				if (pushConfig.xiaomiChannelId) {
+					this.defaults.notification.xiaomiChannelId = pushConfig.xiaomiChannelId;
+				}
 				//设置socket state（socketLogged）登陆成功
 				this.socketLogged = true;
 				this.reConnectNum = 0;
-
 				log(1, "IMServer登陆成功，登陆用户：" + options.userId)
 				//1.登陆成功后从服务端获取一下全部会话，并发送事件CONVERSATION_LIST_CHANGED
 				saveCloudConversationListToLocal(1, 100000);
 				//2.获取媒体上传参数
 				getMediaUploadParams();
+				//3.1 申请权限
+				if (this.defaults.notification.autoPermission) {
+					setPushPermissions();
+				}
+				//3.2 创建推送渠道
+				initNotificationChannel();
+				//3.3 APP用户绑定个推CID到后端，用于离线推送
+				bindAppUserPushCID();
+				//3.4 监听在线透传消息
+				let uuidList = [];
+				uni.onPushMessage((res) => {
+					//APP在后台，并且没被杀掉的时候，收到透传消息在客户端创建通知提示
+					if (!this.inApp && res.type == 'receive') {
+						let uuid = res.data.__UUID__;
+						if (uuidList.indexOf(uuid) <= 0) {
+							uuidList.push(uuid);
+							uni.createPushMessage({
+								title: res.data.title,
+								content: res.data.content,
+								sound: 'system',
+								success: res => {},
+								fail: fail => {}
+							})
+						}
+					}
+				})
+
 				return successHandle(options, "登陆成功", user);
 			} else {
 				return errHandle(options, data.message);
@@ -492,6 +579,19 @@ class YeIMUniSDK {
 		}
 	}
 
+	/**
+	 * 设置APP在前台
+	 */
+	intoApp() {
+		this.inApp = true;
+	}
+
+	/**
+	 * 设置APP已进入后台
+	 */
+	leaveApp() {
+		this.inApp = false;
+	}
 
 }
 
