@@ -30,3 +30,12 @@
 
 - 普通交流QQ群：[391276294](https://qm.qq.com/cgi-bin/qm/qr?k=hEQnVRj3c1B0gDpD2QJrD7UIfWMzCUuM&jump_from=webapi&authKey=kbrD7NHXGIPaiVb2puw+vJeRCIQSXVhIci7eFvFLBH/UjGt+hrdOk4upK731S+1+)
 
+## 基于YeIM-Uni-SDK的演示案例
+
+### 代码
+
+[下载基于YeIM-Uni-SDK的演示案例源码](https://ext.dcloud.net.cn/plugin?id=10266)
+
+### Android App Demo
+
+<img src="https://www.pgyer.com/app/qrcode/WYbc" width="250" height="250" />
