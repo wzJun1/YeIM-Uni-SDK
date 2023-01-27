@@ -77,13 +77,17 @@ function getUploadFilePath(filename, dir = "files") {
 		//文件保存根目录
 		let baseDir = instance.mediaUploadParams.baseDir;
 		//日期目录
-		let dateDir = new Date().toLocaleDateString().split('/').map(item => {
-			if (item < 10) {
-				return '0' + item
-			} else {
-				return item
-			}
-		}).join('');
+		let date = new Date();
+		//修复Android上日期显示异常问题
+		let dateDir = date.getFullYear() + "-" + JSON.stringify(date.getMonth() + 1).padStart(2, 0) + "-" + JSON
+			.stringify(date.getDate()).padStart(2, 0);
+		// let dateDir = new Date().toLocaleDateString().split('/').map(item => {
+		// 	if (item < 10) {
+		// 		return '0' + item
+		// 	} else {
+		// 		return item
+		// 	}
+		// }).join('');
 
 		//后半路径
 		let suffix = dir + "/" + dateDir + "/" + filename;

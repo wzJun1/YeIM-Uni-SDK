@@ -8,8 +8,8 @@ import log from '../func/log';
  * 检测设备通知权限及跳转系统设置通知页面
  */
 function setPushPermissions() {
-	// #ifdef APP-PLUS  
-	if (plus.os.name == 'Android') { // 判断是Android
+	if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
+		'android') { // 判断是Android
 		var main = plus.android.runtimeMainActivity();
 		var pkName = main.getPackageName();
 		var uid = main.getApplicationInfo().plusGetAttribute("uid");
@@ -52,7 +52,8 @@ function setPushPermissions() {
 				}
 			});
 		}
-	} else if (plus.os.name == 'iOS') { // 判断是ISO
+	} else if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
+		'ios') { // 判断是IOS
 		var isOn = undefined;
 		var types = 0;
 		var app = plus.ios.invoke('UIApplication', 'sharedApplication');
@@ -83,7 +84,6 @@ function setPushPermissions() {
 			});
 		}
 	}
-	// #endif  
 }
 
 /**
@@ -92,8 +92,8 @@ function setPushPermissions() {
  * 
  */
 function initNotificationChannel() {
-	// #ifdef APP-PLUS 
-	if (plus.os.name == 'Android' && instance.defaults.notification && instance.defaults.notification.oppoChannelId) {
+	if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
+		'android' && instance.defaults.notification && instance.defaults.notification.oppoChannelId) {
 
 		let oppoChannelId = instance.defaults.notification.oppoChannelId;
 		let channelName = '聊天离线通知';
@@ -119,7 +119,6 @@ function initNotificationChannel() {
 			nManager.createNotificationChannel(channel);
 		}
 	}
-	// #endif  
 }
 
 /**
@@ -129,8 +128,7 @@ function initNotificationChannel() {
  * 
  */
 function bindAppUserPushCID() {
-	// #ifdef APP-PLUS
-	if (!instance.checkLogged()) {
+	if (!instance.checkLogged() || instance.systemInfo.uniPlatform != 'app') {
 		return;
 	}
 	plus.push.getClientInfoAsync((info) => {
@@ -160,7 +158,6 @@ function bindAppUserPushCID() {
 			});
 		}
 	});
-	// #endif  
 }
 
 

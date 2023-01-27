@@ -294,6 +294,7 @@ function createAudioMessage(options) {
  * @param {Object} options.body - 视频消息对象
  * @param {Object} options.body.file - 视频文件信息
  * @param {String} options.body.file.tempFilePath - 本地小视频文件临时路径
+ * @param {Number} options.body.file.duration - 视频时长
  * @param {Number} options.body.file.width - 视频宽度
  * @param {Number} options.body.file.height - 视频高度
  * 
@@ -318,6 +319,10 @@ function createVideoMessage(options) {
 		return buildErrObject("file 不能为空");
 	}
 
+	if (!options.body.file.duration) {
+		return buildErrObject("duration 不能为空");
+	}
+
 	if (!options.body.file.tempFilePath) {
 		return buildErrObject("tempFilePath 不能为空");
 	}
@@ -336,7 +341,8 @@ function createVideoMessage(options) {
 		conversationType: options.conversationType,
 		body: {
 			videoUrl: options.body.file.tempFilePath,
-			thumbnailUrl: null,
+			thumbnailUrl: '',
+			duration: options.body.file.duration,
 			videoWidth: options.body.file.width,
 			videoHeight: options.body.file.height
 		}
@@ -782,6 +788,58 @@ function getMessageListFromCloud(options, page = 1) {
 
 /**
  *  
+ * 删除某条消息 
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {Message} message - 消息对象        
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
+ */
+function deleteMessage(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	if (!options.message) {
+		return errHandle(options, "message 不能为空")
+	}
+
+	if (!options.message.messageId) {
+		return errHandle(options, "message.messageId 不能为空")
+	}
+
+	uni.request({
+		url: instance.defaults.baseURL + "/message/delete",
+		data: {
+			messageId: options.message.messageId
+		},
+		method: 'GET',
+		header: {
+			'content-type': 'application/json',
+			'token': instance.token
+		},
+		success: (res) => {
+			//消息删除后，本地操作消息记录 
+			if (res.data.code == 200) {
+				options.message.isDeleted = 1;
+				saveMessage(options.message);
+				successHandle(options, "删除成功", options.message);
+			} else {
+				errHandle(options, res.data.message);
+			}
+		},
+		fail: (err) => {
+			log(1, err);
+			errHandle(options, err);
+		}
+	});
+}
+
+/**
+ *  
  * 撤回消息 
  * 
  * @param {Object} options - 参数对象     
@@ -805,9 +863,9 @@ function revokeMessage(options) {
 		return errHandle(options, "message.messageId 不能为空")
 	}
 
-	if (!options.message.conversationId) {
-		return errHandle(options, "message.conversationId 不能为空")
-	}
+	// if (!options.message.conversationId) {
+	// 	return errHandle(options, "message.conversationId 不能为空")
+	// }
 
 	uni.request({
 		url: instance.defaults.baseURL + "/message/revoke",
@@ -848,5 +906,6 @@ export {
 	sendMessage,
 	saveMessage,
 	getMessageList,
-	revokeMessage
+	revokeMessage,
+	deleteMessage
 }

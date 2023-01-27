@@ -33,7 +33,8 @@ import {
 	sendMessage,
 	saveMessage,
 	getMessageList,
-	revokeMessage
+	revokeMessage,
+	deleteMessage
 } from './service/messageService'
 import {
 	deleteConversation,
@@ -156,7 +157,13 @@ class YeIMUniSDK {
 		/**
 		 * 版本号
 		 */
-		this.version = "1.1.3";
+		this.version = "1.1.4";
+
+		/**
+		 * uni-app(uni.getSystemInfoSync)获取系统信息。
+		 */
+
+		this.systemInfo = uni.getSystemInfoSync();
 
 		/**
 		 * 是否首次连接
@@ -243,6 +250,7 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.sendMessage = sendMessage; //发送消息统一接口
 		YeIMUniSDK.prototype.getMessageList = getMessageList; //获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
 		YeIMUniSDK.prototype.revokeMessage = revokeMessage; //撤回消息
+		YeIMUniSDK.prototype.deleteMessage = deleteMessage; //删除消息
 		YeIMUniSDK.prototype.getConversation = getConversation; //获取会话详情
 		YeIMUniSDK.prototype.getConversationList = getConversationList; //获取会话列表
 		YeIMUniSDK.prototype.clearConversationUnread = clearConversationUnread; //清除指定会话未读数
@@ -266,9 +274,6 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.setMute = setMute; //禁言群成员
 		YeIMUniSDK.prototype.getGroupApplyList = getGroupApplyList; //获取名下群组用户入群申请列表
 		YeIMUniSDK.prototype.handleApply = handleApply; //处理入群申请 
-
-
-
 		log(1, "============= YeIMUniSDK 初始化成功！版本号：" + instance.version + " =============");
 		return instance;
 	}
@@ -297,7 +302,6 @@ class YeIMUniSDK {
 		if (!options.token) {
 			return errHandle(options, "token 不能为空");
 		}
-
 
 		//拼接websocket连接url
 		let url = this.defaults.socketURL + "/" + options.userId + "/" + options.token;

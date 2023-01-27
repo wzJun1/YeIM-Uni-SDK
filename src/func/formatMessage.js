@@ -1,7 +1,6 @@
 import {
 	instance
 } from "../yeim-uni-sdk";
-import log from './log';
 
 /**
  * 生成消息ID
