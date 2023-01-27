@@ -19,7 +19,7 @@
 
 支持私聊和群聊，支持发送的消息类型：文字消息、图片消息、语音消息、视频消息、位置消息、自定义消息。
 
-必须搭配`YeIM-Uni-Server`服务端，开箱即用。
+必须搭配[YeIM-Uni-Server](https://github.com/wzJun1/YeIM-Uni-Server)服务端，开箱即用。
 
 ## 使用文档
 
