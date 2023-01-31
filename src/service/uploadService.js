@@ -18,7 +18,7 @@ import CryptoJS from '../utils/CryptoJS';
  * 获取媒体上传参数
  */
 async function getMediaUploadParams() {
-	let [err, res] = await uni.request({
+	let response = await uni.request({
 		url: instance.defaults.baseURL + "/upload/sign",
 		data: {},
 		method: 'GET',
@@ -27,10 +27,13 @@ async function getMediaUploadParams() {
 			'token': instance.token
 		}
 	});
-	if (!res || !res.data || !res.data.data) {
+	if (Object.prototype.toString.call(response) === '[object Array]') {
+		response = response.pop();
+	}
+	if (!response || !response.data || !response.data.data) {
 		log(1, "媒体上传参数获取失败！");
 	} else {
-		let data = res.data.data;
+		let data = response.data.data;
 		instance.mediaUploadParams = data;
 	}
 }
