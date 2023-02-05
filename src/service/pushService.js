@@ -87,36 +87,39 @@ function setPushPermissions() {
 }
 
 /**
- *  
+ * 
+ * Android8.0
  * 创建推送渠道
  * 
  */
 function initNotificationChannel() {
 	if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
 		'android' && instance.defaults.notification && instance.defaults.notification.oppoChannelId) {
-
-		let oppoChannelId = instance.defaults.notification.oppoChannelId;
-		let channelName = '聊天离线通知';
-		let main = plus.android.runtimeMainActivity();
-		let Context = plus.android.importClass("android.content.Context");
-		let NotificationManager = plus.android.importClass("android.app.NotificationManager");
-		let nManager = main.getSystemService(Context.NOTIFICATION_SERVICE);
-		let channel = nManager.getNotificationChannel(oppoChannelId);
-		let NotificationChannel = plus.android.importClass('android.app.NotificationChannel');
-		let Notification = plus.android.importClass('android.app.Notification');
-		if (channel) {
-			nManager.deleteNotificationChannel(channel);
-		}
-		//OPPO创建本地通道
-		if (!channel || channel == null || channel == 'null' || channel == undefined) {
-			let channel = new NotificationChannel(oppoChannelId, channelName, NotificationManager
-				.IMPORTANCE_HIGH);
-			channel.setDescription('用于用户离线时推送消息通知');
-			channel.enableVibration(true);
-			channel.enableLights(true);
-			channel.setBypassDnd(true);
-			channel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
-			nManager.createNotificationChannel(channel);
+		var Build = plus.android.importClass("android.os.Build");
+		if (Build.VERSION.SDK_INT >= 26) {
+			let oppoChannelId = instance.defaults.notification.oppoChannelId;
+			let channelName = '聊天离线通知';
+			let main = plus.android.runtimeMainActivity();
+			let Context = plus.android.importClass("android.content.Context");
+			let NotificationManager = plus.android.importClass("android.app.NotificationManager");
+			let nManager = main.getSystemService(Context.NOTIFICATION_SERVICE);
+			let channel = nManager.getNotificationChannel(oppoChannelId);
+			let NotificationChannel = plus.android.importClass('android.app.NotificationChannel');
+			let Notification = plus.android.importClass('android.app.Notification');
+			if (channel) {
+				nManager.deleteNotificationChannel(channel);
+			}
+			//OPPO创建本地通道
+			if (!channel || channel == null || channel == 'null' || channel == undefined) {
+				let channel = new NotificationChannel(oppoChannelId, channelName, NotificationManager
+					.IMPORTANCE_HIGH);
+				channel.setDescription('用于用户离线时推送消息通知');
+				channel.enableVibration(true);
+				channel.enableLights(true);
+				channel.setBypassDnd(true);
+				channel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+				nManager.createNotificationChannel(channel);
+			}
 		}
 	}
 }
