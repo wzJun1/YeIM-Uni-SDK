@@ -92,7 +92,155 @@ function updateUserInfo(options) {
 	});
 }
 
+/**
+ *  
+ * 获取黑名单列表 
+ * 
+ * @param {Object} options - 参数对象     
+ *    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
+ */
+function getBlackUserList(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	uni.request({
+		url: instance.defaults.baseURL + "/user/black/list",
+		data: {},
+		method: 'GET',
+		header: {
+			'content-type': 'application/json',
+			'token': instance.token
+		},
+		success: (res) => {
+			if (res.data.code == 200) {
+				successHandle(options, "获取成功", res.data.data);
+			} else {
+				errHandle(options, res.data.message);
+			}
+		},
+		fail: (err) => {
+			errHandle(options, err);
+		}
+	});
+}
+
+/**
+ *  
+ * 添加用户到黑名单 
+ *  
+ * 
+ * @param {Object} options - 参数对象    
+ * 
+ * {"members": ["user1", "user2"], success: (result) => {}, fail: (error) => {} }
+
+ * 
+ * @param {String} options.members - 用户ID列表    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
+ * @example  
+ * addToBlackUserList({
+       members: ["user1", "user2"],
+       success: (result) => {},
+       fail: (error) => {}
+   });
+ */
+function addToBlackUserList(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	if (!options.members || options.members.length == 0) {
+		return errHandle(options, "members 不能为空");
+	}
+
+	uni.request({
+		url: instance.defaults.baseURL + "/user/black/add",
+		data: {
+			members: options.members
+		},
+		method: 'POST',
+		header: {
+			'content-type': 'application/json',
+			'token': instance.token
+		},
+		success: (res) => {
+			if (res.data.code == 200) {
+				successHandle(options, "添加成功");
+			} else {
+				errHandle(options, res.data.message);
+			}
+		},
+		fail: (err) => {
+			errHandle(options, err);
+		}
+	});
+}
+
+/**
+ *  
+ * 移除黑名单
+ *  
+ * 
+ * @param {Object} options - 参数对象    
+ * 
+ * {"members": ["user1", "user2"], success: (result) => {}, fail: (error) => {} }
+
+ * 
+ * @param {String} options.members - 用户ID列表    
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
+ * @example  
+ * removeFromBlacklist({
+       members: ["user1", "user2"],
+       success: (result) => {},
+       fail: (error) => {}
+   });
+ */
+function removeFromBlacklist(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	if (!options.members || options.members.length == 0) {
+		return errHandle(options, "members 不能为空");
+	}
+
+	uni.request({
+		url: instance.defaults.baseURL + "/user/black/remove",
+		data: {
+			members: options.members
+		},
+		method: 'POST',
+		header: {
+			'content-type': 'application/json',
+			'token': instance.token
+		},
+		success: (res) => {
+			if (res.data.code == 200) {
+				successHandle(options, "移除成功");
+			} else {
+				errHandle(options, res.data.message);
+			}
+		},
+		fail: (err) => {
+			errHandle(options, err);
+		}
+	});
+}
+
 export {
 	getUserInfo,
-	updateUserInfo
+	updateUserInfo,
+	getBlackUserList,
+	addToBlackUserList,
+	removeFromBlacklist
 }

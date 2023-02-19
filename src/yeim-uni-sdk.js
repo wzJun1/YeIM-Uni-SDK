@@ -71,7 +71,10 @@ import {
 
 import {
 	getUserInfo,
-	updateUserInfo
+	updateUserInfo,
+	getBlackUserList,
+	addToBlackUserList,
+	removeFromBlacklist
 } from './service/userService'
 
 import {
@@ -157,7 +160,7 @@ class YeIMUniSDK {
 		/**
 		 * 版本号
 		 */
-		this.version = "1.1.5";
+		this.version = "1.1.6";
 
 		/**
 		 * uni-app(uni.getSystemInfoSync)获取系统信息。
@@ -256,7 +259,10 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.clearConversationUnread = clearConversationUnread; //清除指定会话未读数
 		YeIMUniSDK.prototype.deleteConversation = deleteConversation; //删除指定会话和聊天记录
 		YeIMUniSDK.prototype.getUserInfo = getUserInfo; //获取用户资料
-		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像
+		YeIMUniSDK.prototype.updateUserInfo = updateUserInfo; //更新用户昵称和头像 
+		YeIMUniSDK.prototype.getBlackUserList = getBlackUserList; //获取黑名单列表
+		YeIMUniSDK.prototype.addToBlackUserList = addToBlackUserList; //添加用户到黑名单
+		YeIMUniSDK.prototype.removeFromBlacklist = removeFromBlacklist; //把用户从黑名单移除  
 		YeIMUniSDK.prototype.addEventListener = addEventListener; //设置监听器
 		YeIMUniSDK.prototype.removeEventListener = removeEventListener; //移除监听器
 		YeIMUniSDK.prototype.createGroup = createGroup; //创建群组

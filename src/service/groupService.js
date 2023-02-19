@@ -344,7 +344,7 @@ function getGroupList(options) {
  * 
  * @param {Object} options - 参数对象    
  * 
- * { "groupId":"群ID", success: (result) => {}, fail: (error) => {} }
+ * { "groupId": "群ID", success: (result) => {}, fail: (error) => {} }
  * 
  * @param {String} options.groupId - 群ID    
  * @param {(result)=>{}} [options.success] - 成功回调

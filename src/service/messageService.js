@@ -633,6 +633,9 @@ function saveMessage(message) {
 	let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(message.conversationId);
 	//不存在插入
 	if (index === -1) {
+		if (list.length > 19) {
+			list.splice(0, list.length - 19);
+		}
 		list.push(message);
 		uni.setStorageSync(key, list);
 	} else {
@@ -669,7 +672,7 @@ function getMessageList(options) {
 	}
 
 	// limit 默认就是20个  
-	//如果获取页码不是最新一页，那就直接走缓存
+	//如果获取页码不是最新一页，那就直接走云端
 	if (options.page != 1) {
 		return getMessageListFromCloud(options, options.page);
 	}
