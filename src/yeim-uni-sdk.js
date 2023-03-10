@@ -33,6 +33,7 @@ import {
 	sendMessage,
 	saveMessage,
 	getMessageList,
+	getHistoryMessageList,
 	revokeMessage,
 	deleteMessage
 } from './service/messageService'
@@ -160,7 +161,7 @@ class YeIMUniSDK {
 		/**
 		 * 版本号
 		 */
-		this.version = "1.1.6";
+		this.version = "1.1.7";
 
 		/**
 		 * uni-app(uni.getSystemInfoSync)获取系统信息。
@@ -251,7 +252,12 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.createCustomMessage = createCustomMessage; //创建自定义消息
 		YeIMUniSDK.prototype.upload = upload; //通用上传接口
 		YeIMUniSDK.prototype.sendMessage = sendMessage; //发送消息统一接口
-		YeIMUniSDK.prototype.getMessageList = getMessageList; //获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
+		YeIMUniSDK.prototype.getMessageList =
+			getMessageList; // v1.1.7开始弃用！ 获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
+
+		YeIMUniSDK.prototype.getHistoryMessageList =
+			getHistoryMessageList; //v1.1.7开始使用！获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取） 
+
 		YeIMUniSDK.prototype.revokeMessage = revokeMessage; //撤回消息
 		YeIMUniSDK.prototype.deleteMessage = deleteMessage; //删除消息
 		YeIMUniSDK.prototype.getConversation = getConversation; //获取会话详情

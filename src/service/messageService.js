@@ -646,8 +646,185 @@ function saveMessage(message) {
 }
 
 /**
+ * 
+ * @version 1.1.7
+ * 
+ * 获取历史消息记录  
+ * 
+ * @param {Object} options - 参数对象     
+ * 
+ * @param {String} options.nextMessageId - 下次拉取的开始ID    
+ * @param {String} options.conversationId - 会话ID    
+ * @param {Number} options.limit - 拉取数量，默认：20
+ * @param {(result)=>{}} [options.success] - 成功回调
+ * @param {(error)=>{}} [options.fail] - 失败回调 
+ * 
+ */
+function getHistoryMessageList(options) {
+
+	if (!instance.checkLogged()) {
+		return errHandle(options, "请登陆后再试");
+	}
+
+	if (!options.conversationId) {
+		return errHandle(options, "conversationId 不能为空")
+	}
+
+	//拉取数量
+	let limit = 20;
+	if (options.limit && typeof options.limit == 'number') {
+		limit = options.limit;
+	}
+
+	//判断是否存在上一次拉取的最后一条消息.
+	//如果传入nextMessageId，则从此消息ID开始倒序查询消息记录，否则从最新一条开始查询  
+	if (!options.nextMessageId) {
+		//先查询本地消息
+		let cacheList = getMessageListFromLocal(options.conversationId);
+		//如果小于limit条，再从云端查询一次，同步本地记录
+		if (cacheList.length < limit) {
+			let diff = limit - cacheList.length;
+			let nextMessageId = null;
+			if (cacheList.length > 0) {
+				nextMessageId = cacheList[0].messageId;
+			}
+			getHistoryMessageFromCloud(options.conversationId, nextMessageId, diff)
+				.then((map) => {
+					let list = map.list;
+					if (list && list.length > 0) {
+						let result = cacheList.concat(list);
+						result.sort((a, b) => {
+							return a.sequence - b.sequence;
+						});
+						//本地缓存中当前会话不够limit条，从云端拉取补足
+						let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(options
+							.conversationId);
+						uni.setStorageSync(key, result);
+						map.list = result;
+					}
+					successHandle(options, '接口调用成功', map);
+				}).catch((err) => {
+					errHandle(options, err);
+				});
+		} else {
+			//如果不小于limit条，直接返回数据
+			successHandle(options, '接口调用成功', {
+				list: cacheList,
+				nextMessageId: cacheList[0].messageId
+			});
+		}
+	} else {
+		//传入了nextMessageId，从此消息ID开始倒序查询消息记录
+		let nextMessageId = options.nextMessageId;
+		//先从本地查，如果本地没有，直接从云端查
+		let cacheList = getMessageListFromLocal(options.conversationId);
+		//是否在本地
+		let index = cacheList.findIndex(item => {
+			return item.messageId === nextMessageId
+		});
+
+		//本地没找着，直接从云端去拿
+		if (index === -1) {
+			getHistoryMessageFromCloud(options.conversationId, nextMessageId, limit)
+				.then((map) => {
+					successHandle(options, '接口调用成功', map);
+				}).catch((err) => {
+					errHandle(options, err);
+				});
+		} else {
+			let message = cacheList[index];
+			//本地找到一个消息，先取出从nextMessageId开始的本地的几个数据
+			cacheList = cacheList.slice(0, index);
+			//如果这几个数据对比limit不足，再从云端补足
+			if (cacheList.length < limit) {
+				let diff = limit - cacheList.length;
+				let nextMessageId = null;
+				if (cacheList.length == 0) {
+					nextMessageId = message.messageId;
+				} else {
+					nextMessageId = cacheList[0].messageId;
+				}
+				//从云端补足
+				getHistoryMessageFromCloud(options.conversationId, nextMessageId, diff)
+					.then((map) => {
+						let list = map.list;
+						if (list && list.length > 0) {
+							let result = cacheList.concat(list);
+							result.sort((a, b) => {
+								return a.sequence - b.sequence;
+							});
+							map.list = result;
+						}
+						successHandle(options, '接口调用成功', map);
+					}).catch((err) => {
+						errHandle(options, err);
+					});
+			} else {
+				//这几个数据对比limit已经够了，直接返回
+				successHandle(options, '接口调用成功', {
+					list: cacheList,
+					nextMessageId: cacheList[0].messageId
+				});
+			}
+		}
+	}
+}
+
+/**
+ * 
+ * @version 1.1.7
+ * 
+ * 从云端获取历史消息记录   
+ * 
+ * @param {String} nextMessageId - 下次拉取的开始ID    
+ * @param {String} conversationId - 会话ID    
+ * @param {Number} limit - 拉取数量，默认：20 
+ * @return Promise
+ */
+function getHistoryMessageFromCloud(conversationId, nextMessageId = null, limit = 20) {
+	return new Promise((resolve, reject) => {
+		uni.request({
+			url: instance.defaults.baseURL + "/v117/message/list",
+			data: {
+				nextMessageId: (nextMessageId == null || nextMessageId == '') ? null : nextMessageId,
+				conversationId: conversationId
+			},
+			method: 'GET',
+			header: {
+				'content-type': 'application/json',
+				'token': instance.token
+			},
+			success: (res) => {
+				if (res.data.code == 200) {
+					let result = {};
+					let list = res.data.data.records;
+					list = list.reverse();
+					list.sort((a, b) => {
+						return a.sequence - b.sequence;
+					});
+					result.list = list;
+					if (res.data.data.nextMessageId) {
+						result.nextMessageId = res.data.data.nextMessageId;
+					}
+					resolve(result);
+				} else {
+					reject(res.data.message);
+				}
+			},
+			fail: (err) => {
+				reject(err);
+				log(1, err);
+			}
+		});
+	});
+}
+
+
+/**
  *  
  * 获取历史消息记录 
+ * 
+ * @deprecated 从1.1.7版本开始不再推荐使用此方法获取历史消息记录，请使用getHistoryMessageList
  * 
  * @param {Object} options - 参数对象     
  * 
@@ -909,6 +1086,7 @@ export {
 	sendMessage,
 	saveMessage,
 	getMessageList,
+	getHistoryMessageList,
 	revokeMessage,
 	deleteMessage
 }
