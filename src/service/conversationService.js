@@ -1,6 +1,6 @@
 import {
 	instance
-} from "../yeim-uni-sdk";
+} from '../yeim-uni-sdk';
 import {
 	YeIMUniSDKDefines
 } from '../const/yeim-defines';
@@ -14,7 +14,14 @@ import {
 	buildErrObject,
 	successHandle,
 	errHandle
-} from "../func/callback";
+} from '../func/callback';
+import {
+	YeIMUniSDKStatusCode
+} from '../const/yeim-status-code';
+import {
+	Api,
+	request
+} from '../func/request';
 
 
 /**
@@ -24,7 +31,8 @@ import {
  * @return {void}
  */
 function saveAndUpdateConversation(conversation) {
-	let key = "yeim:conversationList:" + md5(instance.userId);
+
+	let key = `yeim:conversationList:${md5(instance.userId)}`;
 	let list = uni.getStorageSync(key);
 	list = list ? list : [];
 	let index = list.findIndex(item => {
@@ -37,6 +45,7 @@ function saveAndUpdateConversation(conversation) {
 		list.unshift(conversation);
 	}
 	saveConversationList(list);
+
 }
 
 /**
@@ -46,23 +55,25 @@ function saveAndUpdateConversation(conversation) {
  * @return {Conversation} conversation
  */
 function getConversation(conversationId) {
+
 	if (!instance.checkLogged()) {
-		return buildErrObject("请登陆后再试");
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 	if (!conversationId) {
-		return buildErrObject("conversationId 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationId 不能为空');
 	}
-	let key = "yeim:conversationList:" + md5(instance.userId);
+	let key = `yeim:conversationList:${md5(instance.userId)}`;
 	let result = uni.getStorageSync(key);
 	result = result ? result : [];
 	let index = result.findIndex(item => {
 		return item.conversationId === conversationId;
 	});
 	if (index !== -1) {
-		return buildSuccessObject("接口调用成功", result[index]);
+		return buildSuccessObject(YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result[index]);
 	} else {
-		return buildErrObject("没有找到这个会话");
+		return buildErrObject(YeIMUniSDKStatusCode.NO_CONVERSATION.code, YeIMUniSDKStatusCode.NO_CONVERSATION.describe);
 	}
+
 }
 
 /**
@@ -76,19 +87,18 @@ function getConversation(conversationId) {
  * @param {(error)=>{}} [options.fail] - 失败回调  
  */
 function getConversationList(options) {
-
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 	let page = options.page;
 	let limit = options.limit;
-	let key = "yeim:conversationList:" + md5(instance.userId);
+	let key = `yeim:conversationList:${md5(instance.userId)}`;
 	let result = uni.getStorageSync(key);
 	result = result ? result : [];
 	let skipNum = (page - 1) * limit;
 	let list = (skipNum + limit >= result.length) ? result.slice(skipNum, result.length) : result.slice(skipNum,
 		skipNum + limit);
-	successHandle(options, "接口调用成功", list);
+	successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, list);
 }
 
 /**
@@ -97,28 +107,18 @@ function getConversationList(options) {
  * @return {void}
  */
 function saveCloudConversationListToLocal() {
-	uni.request({
-		url: instance.defaults.baseURL + "/conversation/list",
-		data: {
-			page: 1,
-			limit: 999999,
-		},
-		method: 'GET',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				saveConversationList(res.data.data.records);
-			} else {
-				log(1, res.data.message);
-			}
-		},
-		fail: (err) => {
-			log(1, err);
-		}
+
+	request(Api.Conversation.fetchConversationList, 'GET', {
+		page: 1,
+		limit: 999999,
+	}).then((result) => {
+		//查询结果保存到本地
+		saveConversationList(result.records);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -128,7 +128,7 @@ function saveCloudConversationListToLocal() {
  * @return {void}
  */
 function saveConversationList(list) {
-	let key = "yeim:conversationList:" + md5(instance.userId);
+	let key = `yeim:conversationList:${md5(instance.userId)}`;
 	uni.setStorageSync(key, list);
 	emit(YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED, list);
 }
@@ -144,10 +144,11 @@ function saveConversationList(list) {
 function clearConversationUnread(conversationId) {
 
 	if (!instance.checkLogged()) {
-		return buildErrObject("请登陆后再试");
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
-	let key = "yeim:conversationList:" + md5(instance.userId);
+	//本地清除会话未读数
+	let key = `yeim:conversationList:${md5(instance.userId)}`;
 	let result = uni.getStorageSync(key);
 	result = result ? result : [];
 	let index = result.findIndex(item => {
@@ -157,25 +158,15 @@ function clearConversationUnread(conversationId) {
 		result[index].unread = 0;
 		uni.setStorageSync(key, result);
 	}
-
-	uni.request({
-		url: instance.defaults.baseURL + "/conversation/update/unread",
-		data: {
-			conversationId: conversationId
-		},
-		method: 'GET',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-
-		},
-		fail: (err) => {
-			log(1, err);
-		}
+	//云端清除会话未读数
+	request(Api.Conversation.clearConversationUnread, "GET", {
+		conversationId: conversationId
+	}).then(() => {}).catch((fail) => {
+		log(1, fail);
 	});
+	//发送会话列表更新事件
 	emit(YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED, result);
+
 }
 
 /**
@@ -185,18 +176,19 @@ function clearConversationUnread(conversationId) {
  * @return {void}
  */
 function handlePrivateConversationReadReceipt(conversationId) {
+
 	if (!conversationId) {
-		return log(1, "conversationId is null");
+		return log(1, 'conversationId 为空，无法继续执行');
 	}
-	//查出当前会话发出到消息
-	let messageKey = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(conversationId);
+	//查出当前会话发出的消息 
+	let messageKey = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(conversationId)}`;
 	let result = uni.getStorageSync(messageKey);
 	result = result ? result : [];
 	if (result) {
 		let tempList = [];
 		for (let i = 0; i < result.length; i++) {
 			let message = result[i];
-			if (message.direction == "out") {
+			if (message.direction == 'out') {
 				message.isRead = 1;
 				result[i].isRead = 1;
 				tempList.push(message);
@@ -209,6 +201,7 @@ function handlePrivateConversationReadReceipt(conversationId) {
 			list: tempList
 		});
 	}
+
 }
 
 /**
@@ -220,11 +213,11 @@ function handlePrivateConversationReadReceipt(conversationId) {
 function deleteConversation(conversationId) {
 
 	if (!instance.checkLogged()) {
-		return buildErrObject("请登陆后再试");
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	//1.删除本地会话
-	let key = "yeim:conversationList:" + md5(instance.userId);
+	let key = `yeim:conversationList:${md5(instance.userId)}`;
 	let result = uni.getStorageSync(key);
 	result = result ? result : [];
 	let index = result.findIndex(item => {
@@ -234,28 +227,18 @@ function deleteConversation(conversationId) {
 		result.splice(index, 1);
 		uni.setStorageSync(key, result);
 	}
-	//2.删除本地会话内的聊天记录
-	let messageKey = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(conversationId);
+	//2.删除本地会话内的聊天记录 
+	let messageKey = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(conversationId)}`;
 	uni.removeStorageSync(messageKey);
 
-	//3.删除云端会话和云端聊天记录
-	uni.request({
-		url: instance.defaults.baseURL + "/conversation/delete",
-		data: {
-			conversationId: conversationId
-		},
-		method: 'GET',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-
-		},
-		fail: (err) => {
-			log(1, err);
-		}
+	//3.删除云端会话和云端聊天记录 
+	request(Api.Conversation.deleteConversation, 'GET', {
+		conversationId: conversationId
+	}).then(() => {}).catch((fail) => {
+		log(1, fail);
 	});
+
+	//4.发出会话列表更新事件
 	emit(YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED, result);
 
 }

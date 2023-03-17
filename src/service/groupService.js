@@ -1,20 +1,21 @@
 import {
 	instance
-} from "../yeim-uni-sdk";
+} from '../yeim-uni-sdk';
 import {
 	YeIMUniSDKDefines
 } from '../const/yeim-defines';
-import {
-	emit
-} from '../func/event';
 import log from '../func/log';
-import md5 from '../utils/md5';
 import {
-	buildSuccessObject,
-	buildErrObject,
 	successHandle,
 	errHandle
-} from "../func/callback";
+} from '../func/callback';
+import {
+	Api,
+	request
+} from '../func/request';
+import {
+	YeIMUniSDKStatusCode
+} from '../const/yeim-status-code';
 
 /**
  *  
@@ -42,39 +43,28 @@ import {
        fail: (error) => {}
    });
  */
+
 function createGroup(options) {
+
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.name) {
-		return errHandle(options, "name 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'name 不能为空');
 	}
 
 	if (!options.avatarUrl) {
-		return errHandle(options, "avatarUrl 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'avatarUrl 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/create",
-		data: options,
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				//群组创建成功
-				successHandle(options, "创建成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.create, 'POST', options).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -87,7 +77,7 @@ function createGroup(options) {
  * 
  * { "groupId":"群ID", success: (result) => {}, fail: (error) => {} }
  * 
- * @param {String} options.groupId - 群ID    
+ * @param {String} [options.groupId] - 群ID    
  * @param {(result)=>{}} [options.success] - 成功回调
  * @param {(error)=>{}} [options.fail] - 失败回调 
  * 
@@ -99,34 +89,24 @@ function createGroup(options) {
    });
  */
 function dissolveGroup(options) {
+
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/dissolve",
-		data: {
-			groupId: options.groupId
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "解散成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.dissolve, 'GET', {
+		groupId: options.groupId
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -139,8 +119,8 @@ function dissolveGroup(options) {
  * 
  * { "groupId":"群ID", "userId":"转让用户ID", success: (result) => {}, fail: (error) => {} }
  * 
- * @param {String} options.groupId - 群ID    
- * @param {String} options.userId - 转让用户ID 
+ * @param {String} [options.groupId] - 群ID    
+ * @param {String} [options.userId] - 转让用户ID 
  * @param {(result)=>{}} [options.success] - 成功回调
  * @param {(error)=>{}} [options.fail] - 失败回调 
  * 
@@ -153,38 +133,27 @@ function dissolveGroup(options) {
    });
  */
 function transferLeader(options) {
+
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
 	if (!options.userId) {
-		return errHandle(options, "userId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'userId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/transferLeader",
-		data: {
-			groupId: options.groupId,
-			userId: options.userId
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "转让成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.transferLeader, 'GET', {
+		groupId: options.groupId,
+		userId: options.userId
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 }
 
@@ -196,7 +165,7 @@ function transferLeader(options) {
  * 
  * { "groupId":"群ID", "name":"群名称","avatarUrl":"群头像", success: (result) => {}, fail: (error) => {} }
  *
- * @param {String} options.groupId - 群ID
+ * @param {String} [options.groupId] - 群ID
  * @param {String} [options.name] - 群名称   
  * @param {String} [options.avatarUrl] - 群头像  
  * @param {YeIMUniSDKDefines.GROUP.JOINMODE} [options.joinMode] - 群申请处理方式
@@ -218,32 +187,20 @@ function transferLeader(options) {
 function updateGroup(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/edit",
-		data: options,
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "更新成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.update, 'POST', options).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -266,34 +223,24 @@ function updateGroup(options) {
    });
  */
 function getGroup(options) {
+
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/get",
-		data: {
-			groupId: options.groupId
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功", res.data.data);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.fetchGroupInfoById, 'GET', {
+		groupId: options.groupId
+	}).then((result) => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -312,28 +259,18 @@ function getGroup(options) {
    });
  */
 function getGroupList(options) {
+
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/list",
-		data: {},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功", res.data.data);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.list, 'GET', {}).then((result) => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -360,62 +297,59 @@ function getGroupList(options) {
 function joinGroup(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/add",
-		data: {
-			groupId: options.groupId,
-			members: [
-				instance.userId
-			]
-		},
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
+	request(Api.Group.addUser, 'POST', {
+		groupId: options.groupId,
+		members: [
+			instance.userId
+		]
+	}).then((result) => {
 
-				let group = res.data.data.group;
-				let successList = res.data.data.successList;
-				let ignoreList = res.data.data.ignoreList;
+		//群组信息
+		let group = result.group;
+		//操作成功的用户ID列表
+		let successList = result.successList;
+		//忽略了的用户ID列表
+		let ignoreList = result.ignoreList;
 
-				if (ignoreList.indexOf(instance.userId) != -1) {
-					return errHandle(options, "已在当前群组，请勿重复加入");
-				}
-
-				let success = false;
-				if (successList.indexOf(instance.userId) != -1) {
-					success = true;
-				}
-
-				if (!success) {
-					return errHandle(options, "申请入群失败");
-				}
-
-				//自由加入，无需申请
-				if (group.joinMode == YeIMUniSDKDefines.GROUP.JOINMODE.FREE) {
-					successHandle(options, "成功加入群组");
-				} else if (group.joinMode == YeIMUniSDKDefines.GROUP.JOINMODE.CHECK) {
-					successHandle(options, "已发送入群申请，请等待审核");
-				} else {
-					//可有可无
-				}
-
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
+		//添加的用户重复加入
+		if (ignoreList.indexOf(instance.userId) != -1) {
+			return errHandle(options, YeIMUniSDKStatusCode.GROUP_APPLY_REPEAT.code, YeIMUniSDKStatusCode
+				.GROUP_APPLY_REPEAT.describe);
 		}
+
+		//判断成功列表中是否包含当前申请的用户
+		let success = false;
+		if (successList.indexOf(instance.userId) != -1) {
+			success = true;
+		}
+
+		//申请入群的接口异常
+		if (!success) {
+			return errHandle(options, YeIMUniSDKStatusCode.GROUP_APPLY_ERROR.code, YeIMUniSDKStatusCode
+				.GROUP_APPLY_ERROR.describe);
+		}
+
+		//自由加入，无需申请
+		if (group.joinMode == YeIMUniSDKDefines.GROUP.JOINMODE.FREE) {
+			successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.code, '成功加入群组');
+		} else if (group.joinMode == YeIMUniSDKDefines.GROUP.JOINMODE.CHECK) {
+			successHandle(options, YeIMUniSDKStatusCode.GROUP_APPLY_WAIT.code, YeIMUniSDKStatusCode
+				.GROUP_APPLY_WAIT.describe);
+		} else {
+			return errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, YeIMUniSDKStatusCode
+				.NORMAL_ERROR.describe);
+		}
+
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 }
 
@@ -439,34 +373,24 @@ function joinGroup(options) {
    });
  */
 function leaveGroup(options) {
+
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/leave",
-		data: {
-			groupId: options.groupId
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "退出成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.leave, 'GET', {
+		groupId: options.groupId
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -495,39 +419,27 @@ function leaveGroup(options) {
 function addGroupUsers(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
 	if (!options.members || options.members.length <= 0) {
-		return errHandle(options, "members 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'members 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/add",
-		data: {
-			groupId: options.groupId,
-			members: options.members
-		},
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功", res.data.data);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.addUser, 'POST', {
+		groupId: options.groupId,
+		members: options.members
+	}).then((result) => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -556,38 +468,25 @@ function addGroupUsers(options) {
 function removeGroupUsers(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
 	if (!options.members || options.members.length <= 0) {
-		return errHandle(options, "members 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'members 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/delete",
-		data: {
-			groupId: options.groupId,
-			members: options.members
-		},
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.remove, 'POST', {
+		groupId: options.groupId,
+		members: options.members
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 
 }
@@ -615,32 +514,20 @@ function removeGroupUsers(options) {
 function getGroupUserList(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/list",
-		data: {
-			groupId: options.groupId
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功", res.data.data);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.memberList, 'GET', {
+		groupId: options.groupId
+	}).then((result) => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 
 }
@@ -673,34 +560,22 @@ function getGroupUserList(options) {
 function setAdminstrator(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/set/adminstrator",
-		data: {
-			groupId: options.groupId,
-			userId: options.userId,
-			isAdmin: isAdmin === 1 ? isAdmin : 0
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.adminstrator, 'GET', {
+		groupId: options.groupId,
+		userId: options.userId,
+		isAdmin: isAdmin === 1 ? isAdmin : 0
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 
 }
@@ -725,34 +600,18 @@ function setAdminstrator(options) {
 function getGroupApplyList(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/set/adminstrator",
-		data: {
-			groupId: options.groupId,
-			userId: options.userId,
-			isAdmin: options.isAdmin === 1 ? options.isAdmin : 0
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.applyList, 'GET', {}).then((result) => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 
 }
@@ -781,37 +640,25 @@ function getGroupApplyList(options) {
 function handleApply(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.id) {
-		return errHandle(options, "id 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'id 不能为空');
 	}
 
 	if (!options.status) {
-		return errHandle(options, "status 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'status 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/apply/change",
-		data: {
-			id: options.id,
-			status: options.status
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.handleApply, 'GET', {
+		id: options.id,
+		status: options.status
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 
 }
@@ -845,42 +692,30 @@ function handleApply(options) {
 function setMute(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.groupId) {
-		return errHandle(options, "groupId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'groupId 不能为空');
 	}
 
 	if (!options.userId) {
-		return errHandle(options, "userId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'userId 不能为空');
 	}
 
 	if (!options.time) {
 		options.time = 0;
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/group/user/set/mute",
-		data: {
-			groupId: options.groupId,
-			userId: options.userId,
-			time: options.time
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "接口调用成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Group.setMute, 'GET', {
+		groupId: options.groupId,
+		userId: options.userId,
+		time: options.time
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 
 }

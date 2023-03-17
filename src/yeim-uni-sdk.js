@@ -13,16 +13,24 @@
 import {
 	YeIMUniSDKDefines
 } from './const/yeim-defines';
+
+import {
+	YeIMUniSDKStatusCode
+} from './const/yeim-status-code';
+
 import {
 	successHandle,
 	errHandle
 } from './func/callback';
+
 import {
 	emit,
 	addEventListener,
 	removeEventListener
 } from './func/event';
+
 import log from './func/log';
+
 import {
 	createTextMessage,
 	createImageMessage,
@@ -35,7 +43,8 @@ import {
 	getMessageList,
 	getHistoryMessageList,
 	revokeMessage,
-	deleteMessage
+	deleteMessage,
+	handleMessageRevoked
 } from './service/messageService'
 import {
 	deleteConversation,
@@ -80,10 +89,9 @@ import {
 
 import {
 	setPushPermissions,
-	initNotificationChannel,
+	createNotificationChannel,
 	bindAppUserPushCID
 } from './service/pushService'
-
 
 /**
  * YeIMUniSDK实例化对象
@@ -100,34 +108,42 @@ class YeIMUniSDK {
 	 * @constructs
 	 */
 	constructor(options = {}) {
+
 		/**
 		 * 全局配置参数
 		 */
 		this.defaults = {
+
 			/**
 			 * http url
 			 */
 			baseURL: undefined,
+
 			/**
 			 * socket url
 			 */
 			socketURL: undefined,
+
 			/**
 			 * 事件前缀
 			 */
 			eventPrefix: 'YeIM_',
+
 			/**
 			 * 最大重连次数，0不限制一直重连
 			 */
 			reConnectTotal: 15,
+
 			/**
 			 * 重连时间间隔
 			 */
 			reConnectInterval: 3000,
+
 			/**
 			 * 心跳时间间隔(默认30s)
 			 */
 			heartInterval: 30000,
+
 			/**
 			 * 	日志等级
 			 *  0 普通日志，日志量较多，接入时建议使用
@@ -135,33 +151,41 @@ class YeIMUniSDK {
 			 *	2 无日志级别，SDK 将不打印任何日志
 			 */
 			logLevel: 0,
+
+			/**
+			 * SDK自定义初始化参数
+			 */
+			...options,
+
 			/**
 			 * APP离线通知配置
 			 */
 			notification: {
+
 				/**
 				 *  登录后是否自动检测通知权限
 				 */
 				autoPermission: false,
+
 				/**
 				 *  手机安卓8.0以上的通知渠道ID（需要申请）
 				 */
 				oppoChannelId: 'Default', //OPPO手机安卓8.0以上的通知渠道ID
+
 				/**
 				 * 小米手机重要级别消息通知渠道ID（需要申请，一般默认为high_system）
 				 */
-				xiaomiChannelId: 'high_system'
+				xiaomiChannelId: 'high_system',
+
+				...options.notification
 			},
-			/**
-			 * SDK自定义初始化参数
-			 */
-			...options
+
 		};
 
 		/**
 		 * 版本号
 		 */
-		this.version = "1.1.7";
+		this.version = "1.1.8";
 
 		/**
 		 * uni-app(uni.getSystemInfoSync)获取系统信息。
@@ -243,6 +267,9 @@ class YeIMUniSDK {
 		if (instance) {
 			return instance;
 		}
+		if (!options.baseURL || !options.socketURL) {
+			return console.error(YeIMUniSDKStatusCode.SDK_PARAMS_ERROR.describe);
+		}
 		instance = new YeIMUniSDK(options);
 		YeIMUniSDK.prototype.createTextMessage = createTextMessage; //创建文字消息
 		YeIMUniSDK.prototype.createImageMessage = createImageMessage; //创建图片消息
@@ -254,10 +281,8 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.sendMessage = sendMessage; //发送消息统一接口
 		YeIMUniSDK.prototype.getMessageList =
 			getMessageList; // v1.1.7开始弃用！ 获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取）
-
 		YeIMUniSDK.prototype.getHistoryMessageList =
 			getHistoryMessageList; //v1.1.7开始使用！获取历史消息记录（本地默认只存取每个会话的最新20条记录，剩余记录均从云端拉取） 
-
 		YeIMUniSDK.prototype.revokeMessage = revokeMessage; //撤回消息
 		YeIMUniSDK.prototype.deleteMessage = deleteMessage; //删除消息
 		YeIMUniSDK.prototype.getConversation = getConversation; //获取会话详情
@@ -307,12 +332,8 @@ class YeIMUniSDK {
 	 */
 	connect(options = {}) {
 
-		if (!options.userId) {
-			return errHandle(options, "userId 不能为空");
-		}
-
-		if (!options.token) {
-			return errHandle(options, "token 不能为空");
+		if (!options.userId || !options.token) {
+			return errHandle(options, YeIMUniSDKStatusCode.NO_USERID.code, YeIMUniSDKStatusCode.NO_USERID.describe);
 		}
 
 		//拼接websocket连接url
@@ -338,8 +359,10 @@ class YeIMUniSDK {
 		}
 		this.connectTimer = setTimeout(() => {
 			this.connectTimer = undefined;
-			log(1, "连接服务端失败，请检查配置");
-			return errHandle(options, "网络异常，请稍后重试");
+			log(1, '连接服务端失败，请检查配置');
+			return errHandle(options, YeIMUniSDKStatusCode.CONNECT_ERROR.code, YeIMUniSDKStatusCode
+				.CONNECT_ERROR
+				.describe);
 		}, this.defaults.reConnectInterval + 1000);
 
 		//临时设置监听onMessage
@@ -370,7 +393,7 @@ class YeIMUniSDK {
 				//设置socket state（socketLogged）登陆成功
 				this.socketLogged = true;
 				this.reConnectNum = 0;
-				log(1, "IMServer登陆成功，登陆用户：" + options.userId)
+				log(1, `YeIMServer登陆成功，登陆用户：${options.userId}`)
 				//1.登陆成功后从服务端获取一下全部会话，并发送事件CONVERSATION_LIST_CHANGED
 				saveCloudConversationListToLocal(1, 100000);
 				//2.获取媒体上传参数
@@ -380,7 +403,7 @@ class YeIMUniSDK {
 					setPushPermissions();
 				}
 				//3.2 创建推送渠道
-				initNotificationChannel();
+				createNotificationChannel();
 				//3.3 APP用户绑定个推CID到后端，用于离线推送
 				bindAppUserPushCID();
 				//3.4 监听在线透传消息
@@ -395,16 +418,17 @@ class YeIMUniSDK {
 								title: res.data.title,
 								content: res.data.content,
 								sound: 'system',
-								success: res => {},
-								fail: fail => {}
+								success: () => {},
+								fail: () => {}
 							})
 						}
 					}
 				})
-
-				return successHandle(options, "登陆成功", user);
+				return successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, user);
 			} else {
-				return errHandle(options, data.message);
+				return errHandle(options, YeIMUniSDKStatusCode.LOGIN_ERROR.code, YeIMUniSDKStatusCode
+					.LOGIN_ERROR
+					.describe);
 			}
 		})
 	}
@@ -439,9 +463,9 @@ class YeIMUniSDK {
 			this.lockReconnect = true;
 			//没连接上会一直重连，设置延迟避免请求过多
 			//通知网络状态变化
-			emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "connecting");
+			emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, 'connecting');
 			setTimeout(() => {
-				log(1, "IMSDK 正在第" + this.reConnectNum + "次重连")
+				log(1, `WebSocket 正在进行第${this.reConnectNum}次重连`)
 				try {
 					this.connect({
 						userId: this.userId,
@@ -476,7 +500,6 @@ class YeIMUniSDK {
 		if (this.socketTask) {
 			this.heartTimer = setTimeout(() => {
 				if (this.readyState() == 1) {
-					//log(0, "YeIMUniSDK 心跳：" + new Date());
 					let heartJson = {
 						type: 'heart',
 						data: 'ping'
@@ -507,8 +530,8 @@ class YeIMUniSDK {
 	 * @param {Object} info
 	 */
 	socketOpen(info) {
-		log(1, "YeIMUniSDK WebSocket成功连接");
-		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "connected");
+		log(1, 'WebSocket成功连接');
+		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, 'connected');
 	}
 
 	/**
@@ -516,10 +539,10 @@ class YeIMUniSDK {
 	 * @param {Object} err
 	 */
 	socketClose(err) {
-		log(1, "YeIMUniSDK WebSocket断开连接");
+		log(1, 'WebSocket断开连接');
 		this.socketLogged = false;
 		this.socketTask = undefined;
-		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, "closed");
+		emit(YeIMUniSDKDefines.EVENT.NET_CHANGED, 'closed');
 		this.reConnect();
 	}
 
@@ -572,13 +595,16 @@ class YeIMUniSDK {
 			//收到私聊会话已读回执
 			let conversation = data.data;
 			handlePrivateConversationReadReceipt(conversation.conversationId);
+		} else if (data.code == 207) {
+			//收到消息撤回事件 
+			handleMessageRevoked(data.data);
 		} else if (data.code == 109) {
-			//KICKED_OUT 被踢下线，不允许重连了
+			//被踢下线不允许重连
 			this.allowReconnect = false;
 			this.clearHeartTimer();
 			uni.closeSocket();
 			emit(YeIMUniSDKDefines.EVENT.KICKED_OUT, true);
-			log(1, '用户：' + this.userId + '，被踢下线了');
+			log(1, `用户：${this.userId} 由于多个实例同时登录被踢出`);
 		}
 	}
 
@@ -588,7 +614,6 @@ class YeIMUniSDK {
 	 */
 	checkLogged() {
 		if (!this.socketLogged || !this.userId || !this.token) {
-			log(1, "请登陆后再调用此方法");
 			return false;
 		} else {
 			return true;

@@ -9,15 +9,16 @@ import {
  *	2 无日志级别，SDK 将不打印任何日志
  * @param {Object} level
  * @param {Object} msg
+ * @param {Boolean} error
  */
-function log(level, msg) {
+function log(level, msg, error = false) {
 	if (instance.defaults.logLevel == 0) {
-		console.log("【YeIMUniSDK Log】", msg)
+		error ? console.error("【YeIMUniSDK Log】", msg) : console.log("【YeIMUniSDK Log】", msg)
 	} else if (instance.defaults.logLevel == 2) {
 		return;
 	} else {
 		if (level == 1) {
-			console.log("【YeIMUniSDK Log】", msg)
+			error ? console.error("【YeIMUniSDK Log】", msg) : console.log("【YeIMUniSDK Log】", msg)
 		}
 	}
 }

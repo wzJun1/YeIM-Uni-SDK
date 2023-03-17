@@ -1,8 +1,12 @@
 import {
 	instance
-} from "../yeim-uni-sdk";
+} from '../yeim-uni-sdk';
 
 import log from '../func/log';
+import {
+	Api,
+	request
+} from '../func/request';
 
 /**
  * 检测设备通知权限及跳转系统设置通知页面
@@ -12,11 +16,11 @@ function setPushPermissions() {
 		'android') { // 判断是Android
 		var main = plus.android.runtimeMainActivity();
 		var pkName = main.getPackageName();
-		var uid = main.getApplicationInfo().plusGetAttribute("uid");
-		var NotificationManagerCompat = plus.android.importClass("android.support.v4.app.NotificationManagerCompat");
+		var uid = main.getApplicationInfo().plusGetAttribute('uid');
+		var NotificationManagerCompat = plus.android.importClass('android.support.v4.app.NotificationManagerCompat');
 		//android.support.v4升级为androidx
 		if (NotificationManagerCompat == null) {
-			NotificationManagerCompat = plus.android.importClass("androidx.core.app.NotificationManagerCompat");
+			NotificationManagerCompat = plus.android.importClass('androidx.core.app.NotificationManagerCompat');
 		}
 		var areNotificationsEnabled = NotificationManagerCompat.from(main).areNotificationsEnabled();
 
@@ -39,11 +43,11 @@ function setPushPermissions() {
 							intent.putExtra('android.provider.extra.APP_PACKAGE', pkName);
 						} else if (Build.VERSION.SDK_INT >= 21) { //android 5.0-7.0  
 							var intent = new Intent('android.settings.APP_NOTIFICATION_SETTINGS');
-							intent.putExtra("app_package", pkName);
-							intent.putExtra("app_uid", uid);
+							intent.putExtra('app_package', pkName);
+							intent.putExtra('app_uid', uid);
 						} else { //(<21)其他--跳转到该应用管理的详情页  
 							intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-							var uri = Uri.fromParts("package", mainActivity.getPackageName(), null);
+							var uri = Uri.fromParts('package', mainActivity.getPackageName(), null);
 							intent.setData(uri);
 						}
 						// 跳转到该应用的系统通知设置页  
@@ -92,16 +96,16 @@ function setPushPermissions() {
  * 创建推送渠道
  * 
  */
-function initNotificationChannel() {
+function createNotificationChannel() {
 	if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
 		'android' && instance.defaults.notification && instance.defaults.notification.oppoChannelId) {
-		var Build = plus.android.importClass("android.os.Build");
+		var Build = plus.android.importClass('android.os.Build');
 		if (Build.VERSION.SDK_INT >= 26) {
 			let oppoChannelId = instance.defaults.notification.oppoChannelId;
 			let channelName = '聊天离线通知';
 			let main = plus.android.runtimeMainActivity();
-			let Context = plus.android.importClass("android.content.Context");
-			let NotificationManager = plus.android.importClass("android.app.NotificationManager");
+			let Context = plus.android.importClass('android.content.Context');
+			let NotificationManager = plus.android.importClass('android.app.NotificationManager');
 			let nManager = main.getSystemService(Context.NOTIFICATION_SERVICE);
 			let channel = nManager.getNotificationChannel(oppoChannelId);
 			let NotificationChannel = plus.android.importClass('android.app.NotificationChannel');
@@ -135,30 +139,15 @@ function bindAppUserPushCID() {
 		return;
 	}
 	plus.push.getClientInfoAsync((info) => {
-		let clientId = info["clientid"];
+		let clientId = info['clientid'];
 		if (clientId) {
-			uni.request({
-				url: instance.defaults.baseURL + "/user/bind/push/id",
-				data: {
-					clientId: clientId
-				},
-				method: 'POST',
-				header: {
-					'content-type': 'application/x-www-form-urlencoded',
-					'token': instance.token
-				},
-				success: (res) => {
-					let result = res.data;
-					if (result.code == 200) {
-						log(0, "注册APP用户离线通知推送标识符成功，当前获取的cid为：" + clientId);
-					} else {
-						log(1, "注册APP用户离线通知推送标识符异常：" + result.message);
-					}
-				},
-				fail: (err) => {
-					log(1, err);
-				}
-			});
+			request(Api.Push.bindClientId, 'GET', {
+				clientId: clientId
+			}).then(() => {
+				log(0, "注册APP用户离线通知推送标识符成功，当前获取的cid为：" + clientId);
+			}).catch((fail) => {
+				log(1, "注册APP用户离线通知推送标识符异常：" + fail.message);
+			})
 		}
 	});
 }
@@ -166,6 +155,6 @@ function bindAppUserPushCID() {
 
 export {
 	setPushPermissions,
-	initNotificationChannel,
+	createNotificationChannel,
 	bindAppUserPushCID
 }

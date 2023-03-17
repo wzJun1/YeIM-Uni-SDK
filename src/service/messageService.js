@@ -1,6 +1,6 @@
 import {
 	instance
-} from "../yeim-uni-sdk";
+} from '../yeim-uni-sdk';
 
 import {
 	YeIMUniSDKDefines
@@ -13,7 +13,6 @@ import {
 } from './uploadService';
 
 import {
-	buildSuccessObject,
 	buildErrObject,
 	successHandle,
 	errHandle
@@ -24,6 +23,16 @@ import md5 from '../utils/md5';
 import formatMessage from '../func/formatMessage';
 
 import log from '../func/log';
+import {
+	Api,
+	request
+} from '../func/request';
+import {
+	YeIMUniSDKStatusCode
+} from '../const/yeim-status-code';
+import {
+	emit
+} from '../func/event';
 
 
 /**
@@ -43,20 +52,20 @@ import log from '../func/log';
  */
 function createTextMessage(options) {
 
-	if (!instance.userId) {
-		return buildErrObject("请登陆后再调用此接口");
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (options == null || !options.toId) {
-		return buildErrObject("toId 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
 	}
 
 	if (!options.conversationType) {
-		return buildErrObject("conversationType 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
 	}
 
 	if (!options.body || !options.body.text) {
-		return buildErrObject("text 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'text 不能为空');
 	}
 
 	let params = {
@@ -97,32 +106,32 @@ function createTextMessage(options) {
  */
 function createImageMessage(options) {
 
-	if (!instance.userId) {
-		return buildErrObject("请登陆后再调用此接口");
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (options == null || !options.toId) {
-		return buildErrObject("toId 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
 	}
 
 	if (!options.conversationType) {
-		return buildErrObject("conversationType 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
 	}
 
 	if (!options.body || !options.body.file) {
-		return buildErrObject("file 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'file 不能为空');
 	}
 
 	if (!options.body.file.tempFilePath) {
-		return buildErrObject("tempFilePath 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'tempFilePath 不能为空');
 	}
 
 	if (!options.body.file.width) {
-		return buildErrObject("width 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'width 不能为空');
 	}
 
 	if (!options.body.file.height) {
-		return buildErrObject("height 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'height 不能为空');
 	}
 
 	let params = {
@@ -143,7 +152,7 @@ function createImageMessage(options) {
 		params.extra = options.extra;
 	}
 	let message = formatMessage(params);
-	if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+	if (options.onProgress !== undefined && typeof options.onProgress === 'function') {
 		message.onProgress = options.onProgress;
 	}
 	return message;
@@ -169,32 +178,32 @@ function createImageMessage(options) {
  */
 function createLocationMessage(options) {
 
-	if (!instance.userId) {
-		return buildErrObject("请登陆后再调用此接口");
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (options == null || !options.toId) {
-		return buildErrObject("toId 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
 	}
 
 	if (!options.conversationType) {
-		return buildErrObject("conversationType 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
 	}
 
 	if (!options.body.address) {
-		return buildErrObject("address 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'address 不能为空');
 	}
 
 	if (!options.body.description) {
-		return buildErrObject("description 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'description 不能为空');
 	}
 
 	if (!options.body.longitude) {
-		return buildErrObject("longitude 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'longitude 不能为空');
 	}
 
 	if (!options.body.latitude) {
-		return buildErrObject("latitude 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'latitude 不能为空');
 	}
 
 	let params = {
@@ -237,28 +246,28 @@ function createLocationMessage(options) {
  */
 function createAudioMessage(options) {
 
-	if (!instance.userId) {
-		return buildErrObject("请登陆后再调用此接口");
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (options == null || !options.toId) {
-		return buildErrObject("toId 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
 	}
 
 	if (!options.conversationType) {
-		return buildErrObject("conversationType 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
 	}
 
 	if (!options.body || !options.body.file) {
-		return buildErrObject("file 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'file 不能为空');
 	}
 
 	if (!options.body.file.tempFilePath) {
-		return buildErrObject("tempFilePath 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'tempFilePath 不能为空');
 	}
 
 	if (!options.body.file.duration) {
-		return buildErrObject("duration 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'duration 不能为空');
 	}
 
 
@@ -276,7 +285,7 @@ function createAudioMessage(options) {
 		params.extra = options.extra;
 	}
 	let message = formatMessage(params);
-	if (options.onProgress !== undefined && typeof options.onProgress === "function") {
+	if (options.onProgress !== undefined && typeof options.onProgress === 'function') {
 		message.onProgress = options.onProgress;
 	}
 	return message;
@@ -303,36 +312,40 @@ function createAudioMessage(options) {
  */
 function createVideoMessage(options) {
 
-	if (!instance.userId) {
-		return buildErrObject("请登陆后再调用此接口");
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (options == null || !options.toId) {
-		return buildErrObject("toId 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
 	}
 
 	if (!options.conversationType) {
-		return buildErrObject("conversationType 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
 	}
 
 	if (!options.body || !options.body.file) {
-		return buildErrObject("file 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'file 不能为空');
 	}
 
 	if (!options.body.file.duration) {
-		return buildErrObject("duration 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'duration 不能为空');
+	}
+
+	if (typeof options.body.file.duration !== 'number') {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'duration 参数请传入整型');
 	}
 
 	if (!options.body.file.tempFilePath) {
-		return buildErrObject("tempFilePath 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'tempFilePath 不能为空');
 	}
 
 	if (!options.body.file.width) {
-		return buildErrObject("width 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'width 不能为空');
 	}
 
 	if (!options.body.file.height) {
-		return buildErrObject("height 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'height 不能为空');
 	}
 
 	let params = {
@@ -376,21 +389,20 @@ function createVideoMessage(options) {
  */
 function createCustomMessage(options) {
 
-	if (!instance.userId) {
-		return buildErrObject("请登陆后再试");
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (options == null || !options.toId) {
-		return buildErrObject("toId 不能为空");
-
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
 	}
 
 	if (!options.conversationType) {
-		return buildErrObject("conversationType 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
 	}
 
 	if (!options.body) {
-		return buildErrObject("自定义消息的 body 不能为空");
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, '自定义消息的 body 不能为空');
 	}
 
 	let params = {
@@ -439,11 +451,11 @@ function createCustomMessage(options) {
 function sendMessage(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.message) {
-		return errHandle(options, "message 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'message 不能为空');
 	}
 
 	let message = options.message;
@@ -463,7 +475,7 @@ function sendMessage(options) {
 
 /**
  *  
- * 发送普通文本消息 
+ * 发送消息 
  * 
  * @private
  * 
@@ -476,29 +488,14 @@ function sendMessage(options) {
  */
 function sendIMMessage(options) {
 	let message = options.message;
-	uni.request({
-		url: instance.defaults.baseURL + "/message/save",
-		data: message,
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				//消息保存到YeIMServer成功
-				let result = res.data.data;
-				//保存消息到本地
-				saveMessage(result);
-				//发送成功回调
-				successHandle(options, '接口调用成功', result);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.Message.sendMessage, 'POST', message).then((result) => {
+		//保存消息到本地
+		saveMessage(result);
+		//发送成功回调
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 }
 
@@ -518,7 +515,7 @@ function sendIMMessage(options) {
 function sendImageMessage(options) {
 	let message = options.message;
 	uploadImage({
-		filename: instance.token + "_image.png",
+		filename: instance.token + '_image.png',
 		filepath: message.body.originalUrl,
 		width: message.body.originalWidth,
 		height: message.body.originalHeight,
@@ -531,10 +528,11 @@ function sendImageMessage(options) {
 			sendIMMessage(options);
 		},
 		fail: (err) => {
+			errHandle(options, err.code, err.message);
 			log(1, err);
 		},
 		onProgress: (progress) => {
-			if (message.onProgress !== undefined && typeof message.onProgress === "function") {
+			if (message.onProgress !== undefined && typeof message.onProgress === 'function') {
 				message.onProgress(progress);
 			}
 		}
@@ -557,7 +555,7 @@ function sendImageMessage(options) {
 function sendAudioMessage(options) {
 	let message = options.message;
 	uploadAudio({
-		filename: instance.token + "_audio.aac",
+		filename: instance.token + '_audio.aac',
 		filepath: message.body.audioUrl,
 		success: (res) => {
 			let resultUrl = res.data.url;
@@ -566,10 +564,11 @@ function sendAudioMessage(options) {
 			sendIMMessage(options);
 		},
 		fail: (err) => {
+			errHandle(options, err.code, err.message);
 			log(1, err);
 		},
 		onProgress: (progress) => {
-			if (message.onProgress !== undefined && typeof message.onProgress === "function") {
+			if (message.onProgress !== undefined && typeof message.onProgress === 'function') {
 				message.onProgress(progress);
 			}
 		}
@@ -592,7 +591,7 @@ function sendAudioMessage(options) {
 function sendVideoMessage(options) {
 	let message = options.message;
 	uploadVideo({
-		filename: instance.token + "_video.mp4",
+		filename: instance.token + '_video.mp4',
 		filepath: message.body.videoUrl,
 		success: (res) => {
 			let videoUrl = res.data.videoUrl;
@@ -603,10 +602,11 @@ function sendVideoMessage(options) {
 			sendIMMessage(options);
 		},
 		fail: (err) => {
+			errHandle(options, err.code, err.message);
 			log(1, err);
 		},
 		onProgress: (progress) => {
-			if (message.onProgress !== undefined && typeof message.onProgress === "function") {
+			if (message.onProgress !== undefined && typeof message.onProgress === 'function') {
 				message.onProgress(progress);
 			}
 		}
@@ -624,13 +624,13 @@ function sendVideoMessage(options) {
  */
 function saveMessage(message) {
 	if (!message.conversationId) {
-		return log(1, "message.conversationId 不能为空");
+		return log(1, 'conversationId 不能为空');
 	}
 	let list = getMessageListFromLocal(message.conversationId);
 	let index = list.findIndex(item => {
 		return item.messageId === message.messageId
 	});
-	let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(message.conversationId);
+	let key = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(message.conversationId)}`;
 	//不存在插入
 	if (index === -1) {
 		if (list.length > 19) {
@@ -663,11 +663,11 @@ function saveMessage(message) {
 function getHistoryMessageList(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.conversationId) {
-		return errHandle(options, "conversationId 不能为空")
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationId 不能为空');
 	}
 
 	//拉取数量
@@ -696,19 +696,19 @@ function getHistoryMessageList(options) {
 						result.sort((a, b) => {
 							return a.sequence - b.sequence;
 						});
-						//本地缓存中当前会话不够limit条，从云端拉取补足
-						let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(options
-							.conversationId);
+						//本地缓存中当前会话不够limit条，从云端拉取补足 
+						let key =
+							`yeim:messageList:${md5(instance.userId)}:conversationId:${md5(options.conversationId)}`;
 						uni.setStorageSync(key, result);
 						map.list = result;
 					}
-					successHandle(options, '接口调用成功', map);
+					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, map);
 				}).catch((err) => {
-					errHandle(options, err);
+					errHandle(options, err.code, err.message);
 				});
 		} else {
 			//如果不小于limit条，直接返回数据
-			successHandle(options, '接口调用成功', {
+			successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
 				list: cacheList,
 				nextMessageId: cacheList[0].messageId
 			});
@@ -727,9 +727,9 @@ function getHistoryMessageList(options) {
 		if (index === -1) {
 			getHistoryMessageFromCloud(options.conversationId, nextMessageId, limit)
 				.then((map) => {
-					successHandle(options, '接口调用成功', map);
+					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, map);
 				}).catch((err) => {
-					errHandle(options, err);
+					errHandle(options, err.code, err.message);
 				});
 		} else {
 			let message = cacheList[index];
@@ -755,13 +755,13 @@ function getHistoryMessageList(options) {
 							});
 							map.list = result;
 						}
-						successHandle(options, '接口调用成功', map);
+						successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, map);
 					}).catch((err) => {
-						errHandle(options, err);
+						errHandle(options, err.code, err.message);
 					});
 			} else {
 				//这几个数据对比limit已经够了，直接返回
-				successHandle(options, '接口调用成功', {
+				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
 					list: cacheList,
 					nextMessageId: cacheList[0].messageId
 				});
@@ -782,41 +782,28 @@ function getHistoryMessageList(options) {
  * @return Promise
  */
 function getHistoryMessageFromCloud(conversationId, nextMessageId = null, limit = 20) {
+
 	return new Promise((resolve, reject) => {
-		uni.request({
-			url: instance.defaults.baseURL + "/v117/message/list",
-			data: {
-				nextMessageId: (nextMessageId == null || nextMessageId == '') ? null : nextMessageId,
-				conversationId: conversationId
-			},
-			method: 'GET',
-			header: {
-				'content-type': 'application/json',
-				'token': instance.token
-			},
-			success: (res) => {
-				if (res.data.code == 200) {
-					let result = {};
-					let list = res.data.data.records;
-					list = list.reverse();
-					list.sort((a, b) => {
-						return a.sequence - b.sequence;
-					});
-					result.list = list;
-					if (res.data.data.nextMessageId) {
-						result.nextMessageId = res.data.data.nextMessageId;
-					}
-					resolve(result);
-				} else {
-					reject(res.data.message);
-				}
-			},
-			fail: (err) => {
-				reject(err);
-				log(1, err);
+		request(Api.Message.fetchHistoryMessageList, 'GET', {
+			nextMessageId: (nextMessageId == null || nextMessageId == '') ? null : nextMessageId,
+			conversationId: conversationId
+		}).then((response) => {
+			let result = {};
+			let list = response.records;
+			list = list.reverse();
+			list.sort((a, b) => {
+				return a.sequence - b.sequence;
+			});
+			result.list = list;
+			if (response.nextMessageId) {
+				result.nextMessageId = response.nextMessageId;
 			}
-		});
+			resolve(result);
+		}).catch((fail) => {
+			reject(fail);
+		})
 	});
+
 }
 
 
@@ -836,12 +823,14 @@ function getHistoryMessageFromCloud(conversationId, nextMessageId = null, limit 
  */
 function getMessageList(options) {
 
+	log(1, '从1.1.7版本开始不再推荐使用[getMessageList]获取历史消息记录，请使用[getHistoryMessageList]', true);
+
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.conversationId) {
-		return errHandle(options, "conversationId 不能为空")
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationId 不能为空');
 	}
 
 	if (!options.page || !parseFloat(options.page)) {
@@ -869,7 +858,7 @@ function getMessageList(options) {
 		result = result ? result : [];
 		if (result <= 0) {
 			//本地有这个会话的消息列表，但是本地没有任何会话。 
-			return errHandle(options, "会话不存在");
+			return errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, "会话不存在");
 		} else {
 			//本地有会话，找出来当前会话
 			let index = result.findIndex(item => {
@@ -877,10 +866,7 @@ function getMessageList(options) {
 			});
 			if (index === -1) {
 				//没找到当前会话 
-				return errHandle({
-					code: 500,
-					message: "会话不存在"
-				}, options);
+				return errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, "会话不存在");
 			} else {
 				//找到了当前会话的最新消息ID，index是索引
 				let conversation = result[index];
@@ -889,7 +875,7 @@ function getMessageList(options) {
 				let cacheLastMessage = cacheList[cacheList.length - 1];
 				if (lastMessageId == cacheLastMessage.messageId) {
 					//相等，直接返回cacheList 
-					return successHandle(options, '接口调用成功', cacheList);
+					return successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, cacheList);
 				} else {
 					//不相等，说明有新消息没同步，走一下云端
 					getMessageListFromCloud(options, options.page);
@@ -908,7 +894,7 @@ function getMessageList(options) {
  * @return {Array<Message>} MessageList
  */
 function getMessageListFromLocal(conversationId) {
-	let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(conversationId);
+	let key = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(conversationId)}`;
 	let result = uni.getStorageSync(key);
 	result = result ? result : [];
 	result.sort((a, b) => {
@@ -919,6 +905,8 @@ function getMessageListFromLocal(conversationId) {
 
 /**
  *  
+ * @deprecated 从1.1.7版本开始不再推荐使用此方法
+ * 
  * 从云端获取历史消息记录 
  * 
  * @param {Object} options - 参数对象     
@@ -930,6 +918,7 @@ function getMessageListFromLocal(conversationId) {
  * 
  */
 function getMessageListFromCloud(options, page = 1) {
+
 	uni.request({
 		url: instance.defaults.baseURL + "/message/list",
 		data: {
@@ -948,7 +937,7 @@ function getMessageListFromCloud(options, page = 1) {
 				list.sort((a, b) => {
 					return a.sequence - b.sequence;
 				});
-				successHandle(options, "接口调用成功", list);
+				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, list);
 				//如果是从云端拉取最新一页消息，就存入缓存
 				if (page == 1) {
 					let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(options
@@ -956,11 +945,11 @@ function getMessageListFromCloud(options, page = 1) {
 					uni.setStorageSync(key, list);
 				}
 			} else {
-				errHandle(options, res.data.message);
+				errHandle(options, res.data.code, res.data.message);
 			}
 		},
 		fail: (err) => {
-			errHandle(options, err);
+			errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, err);
 			log(1, err);
 		}
 	});
@@ -980,42 +969,29 @@ function getMessageListFromCloud(options, page = 1) {
 function deleteMessage(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.message) {
-		return errHandle(options, "message 不能为空")
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'message 不能为空');
 	}
 
 	if (!options.message.messageId) {
-		return errHandle(options, "message.messageId 不能为空")
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'message.messageId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/message/delete",
-		data: {
-			messageId: options.message.messageId
-		},
-		method: 'GET',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			//消息删除后，本地操作消息记录 
-			if (res.data.code == 200) {
-				options.message.isDeleted = 1;
-				saveMessage(options.message);
-				successHandle(options, "删除成功", options.message);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			log(1, err);
-			errHandle(options, err);
-		}
+	request(Api.Message.deleteMessage, 'GET', {
+		messageId: options.message.messageId
+	}).then(() => {
+		//云端消息删除后，本地修改消息记录 
+		options.message.isDeleted = 1;
+		saveMessage(options.message);
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, options.message);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -1032,47 +1008,51 @@ function deleteMessage(options) {
 function revokeMessage(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.message) {
-		return errHandle(options, "message 不能为空")
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'message 不能为空');
 	}
 
 	if (!options.message.messageId) {
-		return errHandle(options, "message.messageId 不能为空")
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'message.messageId 不能为空');
 	}
 
-	// if (!options.message.conversationId) {
-	// 	return errHandle(options, "message.conversationId 不能为空")
-	// }
-
-	uni.request({
-		url: instance.defaults.baseURL + "/message/revoke",
-		data: {
-			messageId: options.message.messageId
-		},
-		method: 'GET',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			//消息撤回后，本地操作消息记录
-			//修改消息为撤回
-			if (res.data.code == 200) {
-				options.message.isRevoke = 1;
-				saveMessage(options.message);
-				successHandle(options, "撤回成功", options.message);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			log(1, err);
-			errHandle(options, err);
-		}
+	request(Api.Message.revokeMessage, 'GET', {
+		messageId: options.message.messageId
+	}).then(() => {
+		//消息撤回后，本地操作消息记录
+		//修改消息为撤回
+		options.message.isRevoke = 1;
+		saveMessage(options.message);
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, options.message);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
+}
+
+/**
+ *  
+ * 响应撤回消息的处理事件 
+ * 
+ * @param {Message} message - 消息结构     
+ *   
+ */
+function handleMessageRevoked(message) {
+	let key = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(message.conversationId)}`;
+	let list = uni.getStorageSync(key) ? uni.getStorageSync(key) : [];
+	list = list ? list : [];
+	let index = list.findIndex(item => {
+		return item.messageId === message.messageId;
+	});
+	if (index !== -1) {
+		list[index] = message;
+		uni.setStorageSync(key, list);
+	}
+	emit(YeIMUniSDKDefines.EVENT.MESSAGE_REVOKED, message);
 }
 
 
@@ -1088,5 +1068,6 @@ export {
 	getMessageList,
 	getHistoryMessageList,
 	revokeMessage,
-	deleteMessage
+	deleteMessage,
+	handleMessageRevoked
 }

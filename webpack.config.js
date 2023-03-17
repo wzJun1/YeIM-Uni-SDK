@@ -2,6 +2,7 @@ const path = require('path')
 
 module.exports = {
 	entry: path.join(__dirname, '/src/yeim-uni-sdk.js'),
+	devtool: "source-map",
 	output: {
 		path: path.join(__dirname, '/dist'),
 		filename: 'yeim-uni-sdk.min.js',

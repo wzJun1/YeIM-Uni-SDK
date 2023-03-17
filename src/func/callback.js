@@ -12,9 +12,9 @@ function buildSuccessObject(message, data = null) {
 /**
  * 格式化失败对象
  */
-function buildErrObject(message, data = null) {
+function buildErrObject(code = 500, message, data = null) {
 	return {
-		code: 500,
+		code: code,
 		message: message,
 		data: data
 	}
@@ -43,13 +43,14 @@ function successHandle(options, message, data = null) {
  * 
  * @param {Object} options 包含失败回调函数参数的对象
  * @param {Function} [options.fail] - 失败回调 
+ * @param {Number} code 状态码
  * @param {String} message 消息提示
  * @param {Object} data 回调参数
  */
-function errHandle(options, message, data = null) {
+function errHandle(options, code = 500, message, data = null) {
 	try {
 		if (options != null && options.fail !== undefined && typeof options.fail === "function") {
-			options.fail(buildErrObject(message, data));
+			options.fail(buildErrObject(code, message, data));
 		}
 	} catch (e) {
 		console.error(e)

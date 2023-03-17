@@ -1,11 +1,17 @@
 import {
 	instance
-} from "../yeim-uni-sdk";
-
+} from '../yeim-uni-sdk';
+import {
+	Api,
+	request
+} from '../func/request';
 import {
 	successHandle,
 	errHandle
 } from '../func/callback';
+import {
+	YeIMUniSDKStatusCode
+} from '../const/yeim-status-code';
 
 /**
  *  
@@ -21,32 +27,24 @@ import {
 function getUserInfo(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.userId) {
-		return errHandle(options, "userId 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'userId 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/user/info",
-		data: {
-			userId: options.userId
-		},
-		method: 'GET',
-		header: {
-			'token': instance.token
-		},
-		success: (res) => {
-			successHandle(options, "接口调用成功", res.data.data);
-		},
-		fail: (err) => {
-			errHandle(options, err);
-			log(1, err);
-		}
+	request(Api.User.fetchUserInfoById, 'GET', {
+		userId: options.userId
+	}).then((result) => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
 
 }
+
 /**
  *  
  * 更新我的用户资料 
@@ -62,34 +60,27 @@ function getUserInfo(options) {
 function updateUserInfo(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.nickname) {
-		return errHandle(options, "nickname 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'nickname 不能为空');
 	}
+
 	if (!options.avatarUrl) {
-		return errHandle(options, "avatarUrl 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'avatarUrl 不能为空');
 	}
-	uni.request({
-		url: instance.defaults.baseURL + "/user/update",
-		data: {
-			nickname: options.nickname,
-			avatarUrl: options.avatarUrl
-		},
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			successHandle(options, "接口调用成功");
-		},
-		fail: (err) => {
-			errHandle(options, err);
-			log(1, err);
-		}
+
+	request(Api.User.updateUserInfo, 'POST', {
+		nickname: options.nickname,
+		avatarUrl: options.avatarUrl
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -105,28 +96,16 @@ function updateUserInfo(options) {
 function getBlackUserList(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/user/black/list",
-		data: {},
-		method: 'GET',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "获取成功", res.data.data);
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.User.getBlackUserList, 'GET', {}).then((result) => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -153,34 +132,22 @@ function getBlackUserList(options) {
 function addToBlackUserList(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.members || options.members.length == 0) {
-		return errHandle(options, "members 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'members 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/user/black/add",
-		data: {
-			members: options.members
-		},
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "添加成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.User.addToBlackUserList, 'POST', {
+		members: options.members
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 /**
@@ -207,34 +174,22 @@ function addToBlackUserList(options) {
 function removeFromBlacklist(options) {
 
 	if (!instance.checkLogged()) {
-		return errHandle(options, "请登陆后再试");
+		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
 	}
 
 	if (!options.members || options.members.length == 0) {
-		return errHandle(options, "members 不能为空");
+		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'members 不能为空');
 	}
 
-	uni.request({
-		url: instance.defaults.baseURL + "/user/black/remove",
-		data: {
-			members: options.members
-		},
-		method: 'POST',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				successHandle(options, "移除成功");
-			} else {
-				errHandle(options, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, err);
-		}
+	request(Api.User.removeFromBlacklist, 'POST', {
+		members: options.members
+	}).then(() => {
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe);
+	}).catch((fail) => {
+		errHandle(options, fail.code, fail.message);
+		log(1, fail);
 	});
+
 }
 
 export {
