@@ -598,7 +598,7 @@ class YeIMUniSDK {
 		} else if (data.code == 207) {
 			//收到消息撤回事件 
 			handleMessageRevoked(data.data);
-		} else if (data.code == 109) {
+		} else if (data.code == 10009) {
 			//被踢下线不允许重连
 			this.allowReconnect = false;
 			this.clearHeartTimer();
