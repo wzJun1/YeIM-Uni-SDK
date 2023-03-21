@@ -185,7 +185,7 @@ class YeIMUniSDK {
 		/**
 		 * 版本号
 		 */
-		this.version = "1.1.8";
+		this.version = "1.1.9";
 
 		/**
 		 * uni-app(uni.getSystemInfoSync)获取系统信息。
