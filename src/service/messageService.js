@@ -691,16 +691,17 @@ function getHistoryMessageList(options) {
 			getHistoryMessageFromCloud(options.conversationId, nextMessageId, diff)
 				.then((map) => {
 					let list = map.list;
-					if (list && list.length > 0) {
-						let result = cacheList.concat(list);
-						result.sort((a, b) => {
-							return a.sequence - b.sequence;
-						});
-						//本地缓存中当前会话不够limit条，从云端拉取补足 
-						let key =
-							`yeim:messageList:${md5(instance.userId)}:conversationId:${md5(options.conversationId)}`;
-						uni.setStorageSync(key, result);
-						map.list = result;
+					let result = cacheList.concat(list);
+					result.sort((a, b) => {
+						return a.sequence - b.sequence;
+					});
+					//本地缓存中当前会话不够limit条，从云端拉取补足 
+					let key =
+						`yeim:messageList:${md5(instance.userId)}:conversationId:${md5(options.conversationId)}`;
+					uni.setStorageSync(key, result);
+					map.list = result;
+					if (!map.nextMessageId) {
+						map.nextMessageId = nextMessageId;
 					}
 					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, map);
 				}).catch((err) => {
@@ -748,12 +749,13 @@ function getHistoryMessageList(options) {
 				getHistoryMessageFromCloud(options.conversationId, nextMessageId, diff)
 					.then((map) => {
 						let list = map.list;
-						if (list && list.length > 0) {
-							let result = cacheList.concat(list);
-							result.sort((a, b) => {
-								return a.sequence - b.sequence;
-							});
-							map.list = result;
+						let result = cacheList.concat(list);
+						result.sort((a, b) => {
+							return a.sequence - b.sequence;
+						});
+						map.list = result;
+						if (!map.nextMessageId) {
+							map.nextMessageId = nextMessageId;
 						}
 						successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, map);
 					}).catch((err) => {
