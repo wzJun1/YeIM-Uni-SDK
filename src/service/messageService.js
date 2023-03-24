@@ -33,6 +33,7 @@ import {
 import {
 	emit
 } from '../func/event';
+import { getCache, setCache } from '../func/storage';
 
 
 /**
@@ -74,6 +75,69 @@ function createTextMessage(options) {
 		conversationType: options.conversationType,
 		body: {
 			text: options.body.text
+		}
+	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
+	let message = formatMessage(params);
+	return message;
+}
+
+/**
+ * 创建群聊 @ 艾特消息 
+ * 
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "群ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { text: "", atUserIdList: [] }}
+ *
+ * @param {String} options.toId - 群ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊 当前消息仅支持群里
+ * @param {Object} options.body - 文本消息对象
+ * @param {String} options.body.text - 文本消息内容
+ * @param {Array<String>} options.body.atUserIdList - 要艾特的用户ID列表
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
+ */
+function createTextAtMessage(options) {
+
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
+	}
+
+	if (options == null || !options.toId) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
+	}
+
+	if (!options.conversationType) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
+	}
+
+	if (options.conversationType != YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, '仅群聊支持文本@消息');
+	}
+
+	if (!options.body || !options.body.text) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'text 不能为空');
+	}
+
+	if (!options.body.atUserIdList) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'atUserIdList 不能为空');
+	}
+
+	if (Object.prototype.toString.call(options.body.atUserIdList) !== '[object Array]') {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'atUserIdList 应为用户ID组成的字符串数组');
+	}
+
+	let params = {
+		to: options.toId,
+		type: YeIMUniSDKDefines.MESSAGE_TYPE.TEXT_AT,
+		conversationType: options.conversationType,
+		body: {
+			text: options.body.text,
+			atUserIdList: options.body.atUserIdList
 		}
 	};
 	//自定义消息数据
@@ -155,6 +219,92 @@ function createImageMessage(options) {
 	if (options.onProgress !== undefined && typeof options.onProgress === 'function') {
 		message.onProgress = options.onProgress;
 	}
+	return message;
+}
+
+/**
+ * 创建图片Url直发消息
+ * 
+ * 仅支持单张图片
+ * 
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { originalUrl: "http://xxx.com/xxx.jpg", originalWidth: 500, originalHeight: 500, thumbnailUrl: "http://xxx.com/_xxx.jpg", thumbnailWidth: 200, thumbnailHeight: 200 } }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 图片消息对象
+ * @param {String} options.body.originalUrl - 原图网络Url
+ * @param {Number} options.body.originalWidth - 原图宽度
+ * @param {Number} options.body.originalHeight - 原图高度
+ * @param {String} options.body.thumbnailUrl - 缩略图网络Url
+ * @param {Number} options.body.thumbnailWidth - 缩略图宽度
+ * @param {Number} options.body.thumbnailHeight - 缩略图高度
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
+ */
+function createImageMessageFromUrl(options) {
+
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
+	}
+
+	if (options == null || !options.toId) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
+	}
+
+	if (!options.conversationType) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
+	}
+
+	if (!options.body) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'body 不能为空');
+	}
+
+	if (!options.body.originalUrl) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'originalUrl 不能为空');
+	}
+
+	if (!options.body.originalWidth) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'originalWidth 不能为空');
+	}
+
+	if (!options.body.originalHeight) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'originalHeight 不能为空');
+	}
+
+	if (!options.body.thumbnailUrl) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'thumbnailUrl 不能为空');
+	}
+
+	if (!options.body.thumbnailWidth) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'thumbnailWidth 不能为空');
+	}
+
+	if (!options.body.thumbnailHeight) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'thumbnailHeight 不能为空');
+	}
+
+	let params = {
+		to: options.toId,
+		type: YeIMUniSDKDefines.MESSAGE_TYPE.IMAGE,
+		conversationType: options.conversationType,
+		body: {
+			originalUrl: options.body.originalUrl,
+			originalWidth: options.body.originalWidth,
+			originalHeight: options.body.originalHeight,
+			thumbnailUrl: options.body.thumbnailUrl,
+			thumbnailWidth: options.body.thumbnailWidth,
+			thumbnailHeight: options.body.thumbnailHeight
+		}
+	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
+	let message = formatMessage(params);
+
 	return message;
 }
 
@@ -292,6 +442,65 @@ function createAudioMessage(options) {
 }
 
 /**
+ * 创建语音Url直发消息
+ *   
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { audioUrl: "http://xxx.com/1.aac", duration: 5 } }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 音频消息对象 
+ * @param {String} options.body.audioUrl - 音频网络Url
+ * @param {Number} options.body.duration - 音频时长，单位秒 
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
+ */
+function createAudioMessageFromUrl(options) {
+
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
+	}
+
+	if (options == null || !options.toId) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
+	}
+
+	if (!options.conversationType) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
+	}
+
+	if (!options.body) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'body 不能为空');
+	}
+
+	if (!options.body.audioUrl) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'audioUrl 不能为空');
+	}
+
+	if (!options.body.duration) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'duration 不能为空');
+	}
+
+	let params = {
+		to: options.toId,
+		type: YeIMUniSDKDefines.MESSAGE_TYPE.AUDIO,
+		conversationType: options.conversationType,
+		body: {
+			audioUrl: options.body.audioUrl,
+			duration: options.body.duration
+		}
+	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
+	let message = formatMessage(params);
+	return message;
+}
+
+/**
  * 创建小视频消息 
  * 
  * @param {Object} options - 创建消息参数对象
@@ -372,6 +581,83 @@ function createVideoMessage(options) {
 }
 
 /**
+ * 创建小视频Url直发消息 
+ * 
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { videoUrl: "http://xxx.com/1.mp4", thumbnailUrl: "http://xxx.com/1.jpg", duration: 5, width: 720, height: 1280 }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 视频消息对象
+ * @param {String} options.body.videoUrl - 视频网络Url
+ * @param {String} options.body.thumbnailUrl - 视频缩略图网络Url
+ * @param {Number} options.body.duration - 视频时长
+ * @param {Number} options.body.width - 视频宽度
+ * @param {Number} options.body.height - 视频高度
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
+ */
+function createVideoMessageFromUrl(options) {
+
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
+	}
+
+	if (options == null || !options.toId) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
+	}
+
+	if (!options.conversationType) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
+	}
+
+	if (!options.body) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'file 不能为空');
+	}
+
+	if (!options.body.duration) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'duration 不能为空');
+	}
+
+	if (typeof options.body.duration !== 'number') {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'duration 参数请传入整型');
+	}
+
+	if (!options.body.videoUrl) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'tempFilePath 不能为空');
+	}
+
+	if (!options.body.width) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'width 不能为空');
+	}
+
+	if (!options.body.height) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'height 不能为空');
+	}
+
+	let params = {
+		to: options.toId,
+		type: YeIMUniSDKDefines.MESSAGE_TYPE.VIDEO,
+		conversationType: options.conversationType,
+		body: {
+			videoUrl: options.body.videoUrl,
+			thumbnailUrl: options.body.thumbnailUrl,
+			duration: options.body.duration,
+			videoWidth: options.body.width,
+			videoHeight: options.body.height
+		}
+	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
+	let message = formatMessage(params);
+	return message;
+}
+
+/**
  * 创建自定义消息 
  * 
  * 自定义消息内容放在body字段 
@@ -420,14 +706,122 @@ function createCustomMessage(options) {
 }
 
 /**
- * 发送消息统一入口
- * @description 为保证双方消息投递可靠性，发送消息使用http协议确保发送成功。
+ * 创建合并消息 
  * 
- * @param {Object} options
- * @param {Object} options.message @description 消息
- * @param {Function} options.success @description 成功回调
- * @param {Function} options.fail @description 失败回调
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { title: "", messageList: [], summaryList: [] }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 文本消息对象
+ * @param {String} options.body.title - 合并消息的标题
+ * @param {Array<Message>} options.body.messageList - 合并消息的标题
+ * @param {Array<String>} options.body.summaryList - 合并消息的标题
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
  */
+function createMergerMessage(options) {
+
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
+	}
+
+	if (options == null || !options.toId) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
+	}
+
+	if (!options.conversationType) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
+	}
+
+	if (!options.body || !options.body.title) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'title 不能为空');
+	}
+
+	if (!options.body.messageList) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'messageList 不能为空');
+	}
+
+	if (Object.prototype.toString.call(options.body.messageList) !== '[object Array]') {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'messageList 应为由Message结构组成的数组');
+	}
+
+	if (!options.body.summaryList) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'summaryList 不能为空');
+	}
+
+	if (Object.prototype.toString.call(options.body.summaryList) !== '[object Array]') {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'summaryList 应为字符串数组');
+	}
+
+	let params = {
+		to: options.toId,
+		type: YeIMUniSDKDefines.MESSAGE_TYPE.MERGER,
+		conversationType: options.conversationType,
+		body: {
+			title: options.body.title,
+			messageList: options.body.messageList,
+			summaryList: options.body.summaryList,
+		}
+	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
+	let message = formatMessage(params);
+	return message;
+}
+
+/**
+ * 创建转发消息 
+ * 
+ * @param {Object} options - 创建消息参数对象
+ * 
+ * { "toId": "接受者用户ID", "conversationType": YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE, body: { message: message }}
+ *
+ * @param {String} options.toId - 接受者用户ID
+ * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
+ * @param {Object} options.body - 文本消息对象
+ * @param {Message} options.body.message - 要转发的消息 
+ * 
+ * @return {(Object|Message)} Message 消息对象
+ *  
+ */
+function createForwardMessage(options) {
+
+	if (!instance.checkLogged()) {
+		return buildErrObject(YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
+	}
+
+	if (options == null || !options.toId) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'toId 不能为空');
+	}
+
+	if (!options.conversationType) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
+	}
+
+	if (!options.body || !options.body.message) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'message 不能为空');
+	}
+
+	let params = {
+		to: options.toId,
+		type: YeIMUniSDKDefines.MESSAGE_TYPE.FORWARD,
+		conversationType: options.conversationType,
+		body: {
+			message: options.body.message
+		}
+	};
+	//自定义消息数据
+	if (options.extra) {
+		params.extra = options.extra;
+	}
+	let message = formatMessage(params);
+	return message;
+}
 
 /**
  *  
@@ -443,9 +837,9 @@ function createCustomMessage(options) {
  * 
  * @example  
  * sendMessage({
-       message: message, 
-       success: (result) => {},
-       fail: (error) => {}
+	   message: message, 
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function sendMessage(options) {
@@ -459,15 +853,13 @@ function sendMessage(options) {
 	}
 
 	let message = options.message;
-	if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.TEXT) {
-		sendIMMessage(options);
-	} else if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.IMAGE) {
+	if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.IMAGE) {
 		sendImageMessage(options);
 	} else if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.VIDEO) {
 		sendVideoMessage(options);
 	} else if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.AUDIO) {
 		sendAudioMessage(options);
-	} else if (message.type == YeIMUniSDKDefines.MESSAGE_TYPE.LOCATION) {
+	} else {
 		sendIMMessage(options);
 	}
 
@@ -514,6 +906,15 @@ function sendIMMessage(options) {
  */
 function sendImageMessage(options) {
 	let message = options.message;
+
+	//如果原图Url和缩略图Url均为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
+	if ((message.body.originalUrl.includes("http://") || message.body.originalUrl.includes("https://") || message
+		.body.originalUrl.includes("ftp://")) && (message.body.thumbnailUrl.includes("http://") || message.body
+			.thumbnailUrl.includes("https://") || message.body.thumbnailUrl.includes("ftp://"))) {
+		//直发消息
+		return sendIMMessage(options);
+	}
+
 	uploadImage({
 		filename: instance.token + '_image.png',
 		filepath: message.body.originalUrl,
@@ -541,7 +942,7 @@ function sendImageMessage(options) {
 
 /**
  *  
- * 发送aac语音消息 
+ * 发送语音消息 
  * 
  * @private
  * 
@@ -554,6 +955,14 @@ function sendImageMessage(options) {
  */
 function sendAudioMessage(options) {
 	let message = options.message;
+
+	//如果音频Url为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
+	if (message.body.audioUrl.includes("http://") || message.body.audioUrl.includes("https://") || message
+		.body.audioUrl.includes("ftp://")) {
+		//直发消息
+		return sendIMMessage(options);
+	}
+
 	uploadAudio({
 		filename: instance.token + '_audio.aac',
 		filepath: message.body.audioUrl,
@@ -590,6 +999,14 @@ function sendAudioMessage(options) {
  */
 function sendVideoMessage(options) {
 	let message = options.message;
+
+	//如果视频Url为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
+	if (message.body.videoUrl.includes("http://") || message.body.videoUrl.includes("https://") || message
+		.body.videoUrl.includes("ftp://")) {
+		//直发消息
+		return sendIMMessage(options);
+	}
+
 	uploadVideo({
 		filename: instance.token + '_video.mp4',
 		filepath: message.body.videoUrl,
@@ -637,11 +1054,11 @@ function saveMessage(message) {
 			list.splice(0, list.length - 19);
 		}
 		list.push(message);
-		uni.setStorageSync(key, list);
+		setCache(key, list);
 	} else {
 		//存在则更新
 		list[index] = message;
-		uni.setStorageSync(key, list);
+		setCache(key, list);
 	}
 }
 
@@ -698,7 +1115,7 @@ function getHistoryMessageList(options) {
 					//本地缓存中当前会话不够limit条，从云端拉取补足 
 					let key =
 						`yeim:messageList:${md5(instance.userId)}:conversationId:${md5(options.conversationId)}`;
-					uni.setStorageSync(key, result);
+					setCache(key, result);
 					map.list = result;
 					if (!map.nextMessageId) {
 						map.nextMessageId = nextMessageId;
@@ -808,86 +1225,6 @@ function getHistoryMessageFromCloud(conversationId, nextMessageId = null, limit 
 
 }
 
-
-/**
- *  
- * 获取历史消息记录 
- * 
- * @deprecated 从1.1.7版本开始不再推荐使用此方法获取历史消息记录，请使用getHistoryMessageList
- * 
- * @param {Object} options - 参数对象     
- * 
- * @param {Number} options.page - 页码    
- * @param {String} options.conversationId - 会话ID    
- * @param {(result)=>{}} [options.success] - 成功回调
- * @param {(error)=>{}} [options.fail] - 失败回调 
- * 
- */
-function getMessageList(options) {
-
-	log(1, '从1.1.7版本开始不再推荐使用[getMessageList]获取历史消息记录，请使用[getHistoryMessageList]', true);
-
-	if (!instance.checkLogged()) {
-		return errHandle(options, YeIMUniSDKStatusCode.LOGIN_EXPIRE.code, YeIMUniSDKStatusCode.LOGIN_EXPIRE.describe);
-	}
-
-	if (!options.conversationId) {
-		return errHandle(options, YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationId 不能为空');
-	}
-
-	if (!options.page || !parseFloat(options.page)) {
-		options.page = 1;
-	}
-
-	// limit 默认就是20个  
-	//如果获取页码不是最新一页，那就直接走云端
-	if (options.page != 1) {
-		return getMessageListFromCloud(options, options.page);
-	}
-
-	//如果是最新一页，可以本地看看有没有
-	//本地每个会话的消息缓存数量就只有20条，再多就加载云端的。
-	//先取20条进行对比。
-	let cacheList = getMessageListFromLocal(options.conversationId);
-	if (cacheList.length <= 0) {
-		//本地没有这个会话的任何消息记录，那么获取的时候直接从云端拉
-		getMessageListFromCloud(options, options.page);
-	} else {
-		//本地有记录，开始对比 
-		//1.获取当前会话的最新消息ID
-		let key = "yeim:conversationList:" + md5(instance.userId);
-		let result = uni.getStorageSync(key);
-		result = result ? result : [];
-		if (result <= 0) {
-			//本地有这个会话的消息列表，但是本地没有任何会话。 
-			return errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, "会话不存在");
-		} else {
-			//本地有会话，找出来当前会话
-			let index = result.findIndex(item => {
-				return item.conversationId === options.conversationId
-			});
-			if (index === -1) {
-				//没找到当前会话 
-				return errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, "会话不存在");
-			} else {
-				//找到了当前会话的最新消息ID，index是索引
-				let conversation = result[index];
-				let lastMessageId = conversation.lastMessage.messageId;
-				// 2. 对比当前会话的最新消息ID，如果和缓存的最新一条消息ID相等，则直接拉本地，否则拉云端
-				let cacheLastMessage = cacheList[cacheList.length - 1];
-				if (lastMessageId == cacheLastMessage.messageId) {
-					//相等，直接返回cacheList 
-					return successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, cacheList);
-				} else {
-					//不相等，说明有新消息没同步，走一下云端
-					getMessageListFromCloud(options, options.page);
-				}
-			}
-		}
-	}
-
-}
-
 /**
  *  
  * 从本地获取历史消息记录  
@@ -897,64 +1234,12 @@ function getMessageList(options) {
  */
 function getMessageListFromLocal(conversationId) {
 	let key = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(conversationId)}`;
-	let result = uni.getStorageSync(key);
+	let result = getCache(key);
 	result = result ? result : [];
 	result.sort((a, b) => {
 		return a.sequence - b.sequence;
 	});
 	return result;
-}
-
-/**
- *  
- * @deprecated 从1.1.7版本开始不再推荐使用此方法
- * 
- * 从云端获取历史消息记录 
- * 
- * @param {Object} options - 参数对象     
- * 
- * @param {Number} options.page - 页码    
- * @param {String} options.conversationId - 会话ID    
- * @param {(result)=>{}} [options.success] - 成功回调
- * @param {(error)=>{}} [options.fail] - 失败回调 
- * 
- */
-function getMessageListFromCloud(options, page = 1) {
-
-	uni.request({
-		url: instance.defaults.baseURL + "/message/list",
-		data: {
-			page,
-			conversationId: options.conversationId
-		},
-		method: 'GET',
-		header: {
-			'content-type': 'application/json',
-			'token': instance.token
-		},
-		success: (res) => {
-			if (res.data.code == 200) {
-				let list = res.data.data.records;
-				list = list.reverse();
-				list.sort((a, b) => {
-					return a.sequence - b.sequence;
-				});
-				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, list);
-				//如果是从云端拉取最新一页消息，就存入缓存
-				if (page == 1) {
-					let key = "yeim:messageList:" + md5(instance.userId) + ":conversationId:" + md5(options
-						.conversationId);
-					uni.setStorageSync(key, list);
-				}
-			} else {
-				errHandle(options, res.data.code, res.data.message);
-			}
-		},
-		fail: (err) => {
-			errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, err);
-			log(1, err);
-		}
-	});
 }
 
 /**
@@ -1045,14 +1330,14 @@ function revokeMessage(options) {
  */
 function handleMessageRevoked(message) {
 	let key = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(message.conversationId)}`;
-	let list = uni.getStorageSync(key) ? uni.getStorageSync(key) : [];
+	let list = getCache(key) ? getCache(key) : [];
 	list = list ? list : [];
 	let index = list.findIndex(item => {
 		return item.messageId === message.messageId;
 	});
 	if (index !== -1) {
 		list[index] = message;
-		uni.setStorageSync(key, list);
+		setCache(key, list);
 	}
 	emit(YeIMUniSDKDefines.EVENT.MESSAGE_REVOKED, message);
 }
@@ -1060,14 +1345,19 @@ function handleMessageRevoked(message) {
 
 export {
 	createTextMessage,
+	createTextAtMessage,
 	createImageMessage,
+	createImageMessageFromUrl,
 	createAudioMessage,
+	createAudioMessageFromUrl,
 	createVideoMessage,
+	createVideoMessageFromUrl,
 	createLocationMessage,
 	createCustomMessage,
+	createMergerMessage,
+	createForwardMessage,
 	sendMessage,
 	saveMessage,
-	getMessageList,
 	getHistoryMessageList,
 	revokeMessage,
 	deleteMessage,

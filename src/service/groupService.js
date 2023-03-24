@@ -37,10 +37,10 @@ import {
  * 
  * @example  
  * createGroup({
-       name: "",
-       avatarUrl: "", 
-       success: (result) => {},
-       fail: (error) => {}
+	   name: "",
+	   avatarUrl: "", 
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 
@@ -83,9 +83,9 @@ function createGroup(options) {
  * 
  * @example  
  * dissolveGroup({
-       groupId: "",
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function dissolveGroup(options) {
@@ -126,10 +126,10 @@ function dissolveGroup(options) {
  * 
  * @example  
  * transferLeader({
-       groupId: "",
-       userId: "",
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   userId: "",
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function transferLeader(options) {
@@ -177,11 +177,11 @@ function transferLeader(options) {
  * 
  * @example  
  * updateGroup({
-       groupId: "",
-       name: "",
-       avatarUrl: "", 
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   name: "",
+	   avatarUrl: "", 
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function updateGroup(options) {
@@ -217,9 +217,9 @@ function updateGroup(options) {
  * 
  * @example 
  * getGroup({
-       groupId: "",
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function getGroup(options) {
@@ -254,8 +254,8 @@ function getGroup(options) {
  * 
  * @example 
  * getGroupList({
-       success: (result) => {},
-       fail: (error) => {}
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function getGroupList(options) {
@@ -289,9 +289,9 @@ function getGroupList(options) {
  * 
  * @example  
  * joinGroup({
-       groupId: "",
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function joinGroup(options) {
@@ -367,9 +367,9 @@ function joinGroup(options) {
  * 
  * @example  
  * leaveGroup({
-       groupId: "",
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function leaveGroup(options) {
@@ -410,10 +410,10 @@ function leaveGroup(options) {
  * 
  * @example  
  * addGroupUsers({
-       groupId: "",
-       members: ["user1", "user2"],
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   members: ["user1", "user2"],
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function addGroupUsers(options) {
@@ -459,10 +459,10 @@ function addGroupUsers(options) {
  * 
  * @example  
  * removeGroupUsers({
-       groupId: "",
-       members: ["user1", "user2"],
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   members: ["user1", "user2"],
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function removeGroupUsers(options) {
@@ -505,12 +505,11 @@ function removeGroupUsers(options) {
  * 
  * @example  
  * getGroupUserList({
-       groupId: "group_1",
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "group_1",
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
-
 function getGroupUserList(options) {
 
 	if (!instance.checkLogged()) {
@@ -550,11 +549,11 @@ function getGroupUserList(options) {
  * 
  * @example
  * setAdminstrator({
-       groupId: "",
-       userId: "",
-       isAdmin: 1,
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "",
+	   userId: "",
+	   isAdmin: 1,
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
 function setAdminstrator(options) {
@@ -592,11 +591,10 @@ function setAdminstrator(options) {
  * 
  * @example  
  * getGroupApplyList({
-       success: (result) => {},
-       fail: (error) => {}
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
-
 function getGroupApplyList(options) {
 
 	if (!instance.checkLogged()) {
@@ -630,13 +628,12 @@ function getGroupApplyList(options) {
  * 
  * @example  
  * handleApply({
-       id: 5, //申请记录的ID  
-       status: YeIMUniSDKDefines.GROUP.APPLYSTATUS.AGREE, //同意
-       success: (result) => {},
-       fail: (error) => {}
+	   id: 5, //申请记录的ID  
+	   status: YeIMUniSDKDefines.GROUP.APPLYSTATUS.AGREE, //同意
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
-
 function handleApply(options) {
 
 	if (!instance.checkLogged()) {
@@ -681,14 +678,13 @@ function handleApply(options) {
  * 
  * @example  
  * setMute({
-       groupId: "group_1",
-       userId: "user1",
-       time: 10,
-       success: (result) => {},
-       fail: (error) => {}
+	   groupId: "group_1",
+	   userId: "user1",
+	   time: 10,
+	   success: (result) => {},
+	   fail: (error) => {}
    });
  */
-
 function setMute(options) {
 
 	if (!instance.checkLogged()) {

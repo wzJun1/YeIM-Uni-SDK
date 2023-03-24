@@ -1,13 +1,23 @@
 {
 	"name": "yeim-uni-sdk",
-	"version": "1.1.9",
-	"description": "",
-	"main": "webpack.config.js",
+	"version": "1.2.0",
+	"description": "可私有化部署的全开源即时通讯uni-app js-sdk，仅需植入 sdk 即可轻松集成聊天能力，支持基于uni-app的任何项目接入使用，满足通信需要。",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"dev": "webpack --mode development",
-		"build": "webpack --mode production"
+		"dev": "rollup -w -c --bundleConfigAsCjs",
+		"build": "rollup -c --bundleConfigAsCjs",
+		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "wzjun1",
-	"license": "ISC"
+	"license": "Apache-2.0",
+	"types": "src/yeim-uni-sdk.min.d.ts",
+	"devDependencies": {
+		"@babel/core": "^7.21.3",
+		"@babel/plugin-transform-runtime": "^7.21.0",
+		"@babel/preset-env": "^7.20.2",
+		"@rollup/plugin-babel": "^6.0.3",
+		"@rollup/plugin-commonjs": "^24.0.1",
+		"@rollup/plugin-json": "^6.0.0",
+		"@rollup/plugin-node-resolve": "^15.0.1",
+		"@rollup/plugin-terser": "^0.4.0"
+	}
 }

@@ -1,3 +1,5 @@
+/*eslint-disable*/
+
 import {
 	instance
 } from '../yeim-uni-sdk';
@@ -12,7 +14,8 @@ import {
  * 检测设备通知权限及跳转系统设置通知页面
  */
 function setPushPermissions() {
-	if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
+	let systemInfo = uni.getSystemInfoSync();
+	if (systemInfo.uniPlatform == 'app' && systemInfo.osName ==
 		'android') { // 判断是Android
 		var main = plus.android.runtimeMainActivity();
 		var pkName = main.getPackageName();
@@ -33,7 +36,7 @@ function setPushPermissions() {
 				content: '您还没有开启通知权限，无法接受到消息通知，请前往设置！',
 				showCancel: false,
 				confirmText: '去设置',
-				success: function(res) {
+				success: function (res) {
 					if (res.confirm) {
 						var Intent = plus.android.importClass('android.content.Intent');
 						var Build = plus.android.importClass("android.os.Build");
@@ -56,7 +59,7 @@ function setPushPermissions() {
 				}
 			});
 		}
-	} else if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
+	} else if (systemInfo.uniPlatform == 'app' && systemInfo.osName ==
 		'ios') { // 判断是IOS
 		var isOn = undefined;
 		var types = 0;
@@ -76,7 +79,7 @@ function setPushPermissions() {
 				content: '您还没有开启通知权限，无法接受到消息通知，请前往设置！',
 				showCancel: false,
 				confirmText: '去设置',
-				success: function(res) {
+				success: function (res) {
 					if (res.confirm) {
 						var app = plus.ios.invoke('UIApplication', 'sharedApplication');
 						var setting = plus.ios.invoke('NSURL', 'URLWithString:', 'app-settings:');
@@ -97,7 +100,8 @@ function setPushPermissions() {
  * 
  */
 function createNotificationChannel() {
-	if (instance.systemInfo.uniPlatform == 'app' && instance.systemInfo.osName ==
+	let systemInfo = uni.getSystemInfoSync();
+	if (systemInfo.uniPlatform == 'app' && systemInfo.osName ==
 		'android' && instance.defaults.notification && instance.defaults.notification.oppoChannelId) {
 		var Build = plus.android.importClass('android.os.Build');
 		if (Build.VERSION.SDK_INT >= 26) {
@@ -135,7 +139,8 @@ function createNotificationChannel() {
  * 
  */
 function bindAppUserPushCID() {
-	if (!instance.checkLogged() || instance.systemInfo.uniPlatform != 'app') {
+	let systemInfo = uni.getSystemInfoSync();
+	if (!instance.checkLogged() || systemInfo.uniPlatform != 'app') {
 		return;
 	}
 	plus.push.getClientInfoAsync((info) => {

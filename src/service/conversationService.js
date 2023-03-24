@@ -22,6 +22,7 @@ import {
 	Api,
 	request
 } from '../func/request';
+import { getCache, removeCache, setCache } from '../func/storage';
 
 
 /**
@@ -33,7 +34,7 @@ import {
 function saveAndUpdateConversation(conversation) {
 
 	let key = `yeim:conversationList:${md5(instance.userId)}`;
-	let list = uni.getStorageSync(key);
+	let list = getCache(key);
 	list = list ? list : [];
 	let index = list.findIndex(item => {
 		return item.conversationId === conversation.conversationId
@@ -63,7 +64,7 @@ function getConversation(conversationId) {
 		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationId 不能为空');
 	}
 	let key = `yeim:conversationList:${md5(instance.userId)}`;
-	let result = uni.getStorageSync(key);
+	let result = getCache(key);
 	result = result ? result : [];
 	let index = result.findIndex(item => {
 		return item.conversationId === conversationId;
@@ -93,7 +94,7 @@ function getConversationList(options) {
 	let page = options.page;
 	let limit = options.limit;
 	let key = `yeim:conversationList:${md5(instance.userId)}`;
-	let result = uni.getStorageSync(key);
+	let result = getCache(key);
 	result = result ? result : [];
 	let skipNum = (page - 1) * limit;
 	let list = (skipNum + limit >= result.length) ? result.slice(skipNum, result.length) : result.slice(skipNum,
@@ -115,7 +116,6 @@ function saveCloudConversationListToLocal() {
 		//查询结果保存到本地
 		saveConversationList(result.records);
 	}).catch((fail) => {
-		errHandle(options, fail.code, fail.message);
 		log(1, fail);
 	});
 
@@ -129,7 +129,7 @@ function saveCloudConversationListToLocal() {
  */
 function saveConversationList(list) {
 	let key = `yeim:conversationList:${md5(instance.userId)}`;
-	uni.setStorageSync(key, list);
+	setCache(key, list);
 	emit(YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED, list);
 }
 
@@ -149,19 +149,19 @@ function clearConversationUnread(conversationId) {
 
 	//本地清除会话未读数
 	let key = `yeim:conversationList:${md5(instance.userId)}`;
-	let result = uni.getStorageSync(key);
+	let result = getCache(key);
 	result = result ? result : [];
 	let index = result.findIndex(item => {
 		return item.conversationId === conversationId;
 	});
 	if (index !== -1) {
 		result[index].unread = 0;
-		uni.setStorageSync(key, result);
+		setCache(key, result);
 	}
 	//云端清除会话未读数
 	request(Api.Conversation.clearConversationUnread, "GET", {
 		conversationId: conversationId
-	}).then(() => {}).catch((fail) => {
+	}).then(() => { }).catch((fail) => {
 		log(1, fail);
 	});
 	//发送会话列表更新事件
@@ -182,7 +182,7 @@ function handlePrivateConversationReadReceipt(conversationId) {
 	}
 	//查出当前会话发出的消息 
 	let messageKey = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(conversationId)}`;
-	let result = uni.getStorageSync(messageKey);
+	let result = getCache(messageKey);
 	result = result ? result : [];
 	if (result) {
 		let tempList = [];
@@ -194,7 +194,7 @@ function handlePrivateConversationReadReceipt(conversationId) {
 				tempList.push(message);
 			}
 		}
-		uni.setStorageSync(messageKey, result);
+		setCache(messageKey, result);
 		//发送私聊会话已读事件
 		emit(YeIMUniSDKDefines.EVENT.PRIVATE_READ_RECEIPT, {
 			conversationId: conversationId,
@@ -218,23 +218,23 @@ function deleteConversation(conversationId) {
 
 	//1.删除本地会话
 	let key = `yeim:conversationList:${md5(instance.userId)}`;
-	let result = uni.getStorageSync(key);
+	let result = getCache(key);
 	result = result ? result : [];
 	let index = result.findIndex(item => {
 		return item.conversationId === conversationId;
 	});
 	if (index !== -1) {
 		result.splice(index, 1);
-		uni.setStorageSync(key, result);
+		setCache(key, result);
 	}
 	//2.删除本地会话内的聊天记录 
 	let messageKey = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(conversationId)}`;
-	uni.removeStorageSync(messageKey);
+	removeCache(messageKey);
 
 	//3.删除云端会话和云端聊天记录 
 	request(Api.Conversation.deleteConversation, 'GET', {
 		conversationId: conversationId
-	}).then(() => {}).catch((fail) => {
+	}).then(() => { }).catch((fail) => {
 		log(1, fail);
 	});
 

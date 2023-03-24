@@ -8,7 +8,7 @@ import {
  * @param {Object} data
  */
 function emit(event, data) {
-	uni.$emit(instance.defaults.eventPrefix + event, data)
+	instance.emitter.emit(instance.defaults.eventPrefix + event, data)
 }
 
 /**
@@ -18,8 +18,7 @@ function emit(event, data) {
  */
 function addEventListener(event, callback) {
 	if (event) {
-		//uni.$off(this.eventPrefix + event);
-		uni.$on(instance.defaults.eventPrefix + event, callback);
+		instance.emitter.on(instance.defaults.eventPrefix + event, callback);
 	}
 }
 
@@ -30,7 +29,7 @@ function addEventListener(event, callback) {
  */
 function removeEventListener(event, callback) {
 	if (event) {
-		uni.$off(instance.defaults.eventPrefix + event, callback);
+		instance.emitter.off(instance.defaults.eventPrefix + event, callback);
 	}
 }
 

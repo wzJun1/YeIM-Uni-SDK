@@ -19,11 +19,14 @@ YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 'group'; //群聊
 //消息类型
 YeIMUniSDKDefines.MESSAGE_TYPE = {};
 YeIMUniSDKDefines.MESSAGE_TYPE.TEXT = 'text'; //文本消息
+YeIMUniSDKDefines.MESSAGE_TYPE.TEXT_AT = 'text_at'; //文本@消息
 YeIMUniSDKDefines.MESSAGE_TYPE.IMAGE = 'image'; //图片消息
 YeIMUniSDKDefines.MESSAGE_TYPE.AUDIO = 'audio'; //语音消息
 YeIMUniSDKDefines.MESSAGE_TYPE.VIDEO = 'video'; //小视频消息
 YeIMUniSDKDefines.MESSAGE_TYPE.LOCATION = 'location'; //位置消息
 YeIMUniSDKDefines.MESSAGE_TYPE.CUSTOM = 'custom'; //自定义消息
+YeIMUniSDKDefines.MESSAGE_TYPE.MERGER = 'merger'; //合并消息
+YeIMUniSDKDefines.MESSAGE_TYPE.FORWARD = 'forward'; //转发消息 
 YeIMUniSDKDefines.MESSAGE_TYPE.GROUP_SYS_NOTICE = 'group_sys_notice'; //群聊系统通知
 
 //群组

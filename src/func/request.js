@@ -1,6 +1,10 @@
+/*eslint-disable*/
+
 import {
 	YeIMUniSDKStatusCode
 } from '../const/yeim-status-code';
+import { fetch } from '../utils/fetch';
+import queryParams from '../utils/queryParams';
 import {
 	instance
 } from '../yeim-uni-sdk';
@@ -108,17 +112,63 @@ let Api = {
  *  
  */
 function request(url, method = 'GET', data = null) {
+
 	return new Promise((resolve, reject) => {
-		uni.request({
-			url: instance.defaults.baseURL + url,
-			data: data,
-			method: method,
-			header: {
-				'content-type': 'application/json',
-				'token': instance.token != null ? instance.token : ''
-			},
-			success: (result) => {
-				if (result.data == null) {
+
+		if (instance.uni) {
+			uni.request({
+				url: instance.defaults.baseURL + url,
+				data: data,
+				method: method,
+				header: {
+					'content-type': 'application/json',
+					'token': instance.token != null ? instance.token : ''
+				},
+				success: (result) => {
+					if (result.data == null) {
+						return reject({
+							code: YeIMUniSDKStatusCode.NORMAL_ERROR.code,
+							message: result.message ? result.message : YeIMUniSDKStatusCode
+								.NORMAL_ERROR.describe,
+							data: null
+						});
+					}
+					result = result.data;
+					let code = result.code;
+					if (code === YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
+						resolve(result.data ? result.data : null);
+					} else {
+						reject(result);
+					}
+				},
+				fail: (fail) => {
+					log(1, fail);
+					reject({
+						code: YeIMUniSDKStatusCode.NORMAL_ERROR.code,
+						message: JSON.stringify(fail),
+						data: null
+					});
+				}
+			});
+		} else {
+
+			let options = {
+				method: method,
+				body: JSON.stringify(data),
+				headers: {
+					"Content-Type": "application/json",
+					'token': instance.token != null ? instance.token : ''
+				},
+			};
+
+			if (method == "GET") {
+				url = url + queryParams(data, true);
+				delete options.body;
+			}
+
+			fetch(instance.defaults.baseURL + url, options).then(async (response) => {
+				let result = await response.json();
+				if (result == null) {
 					return reject({
 						code: YeIMUniSDKStatusCode.NORMAL_ERROR.code,
 						message: result.message ? result.message : YeIMUniSDKStatusCode
@@ -126,23 +176,21 @@ function request(url, method = 'GET', data = null) {
 						data: null
 					});
 				}
-				result = result.data;
 				let code = result.code;
 				if (code === YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
 					resolve(result.data ? result.data : null);
 				} else {
 					reject(result);
 				}
-			},
-			fail: (fail) => {
-				log(1, fail);
+			}, (error) => {
+				log(1, error);
 				reject({
 					code: YeIMUniSDKStatusCode.NORMAL_ERROR.code,
-					message: JSON.stringify(fail),
+					message: JSON.stringify(error.message),
 					data: null
 				});
-			}
-		})
+			})
+		}
 	});
 }
 
@@ -215,14 +263,14 @@ function download(options) {
 			} else {
 				errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 					.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-					.code.describe);
+						.code.describe);
 			}
 		},
 		fail: (fail) => {
 			log(1, fail);
 			errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 				.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-				.code.describe);
+					.code.describe);
 		}
 	});
 }
