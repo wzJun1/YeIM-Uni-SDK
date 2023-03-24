@@ -38,6 +38,16 @@
 
 - 普通交流QQ群：[391276294](https://qm.qq.com/cgi-bin/qm/qr?k=hEQnVRj3c1B0gDpD2QJrD7UIfWMzCUuM&jump_from=webapi&authKey=kbrD7NHXGIPaiVb2puw+vJeRCIQSXVhIci7eFvFLBH/UjGt+hrdOk4upK731S+1+)
 
+## 源码编译
+
+```shell
+npm i
+```
+
+```shell
+npm run build
+```
+
 ## 基于YeIM-Uni-SDK的演示案例
 
 ### 代码
