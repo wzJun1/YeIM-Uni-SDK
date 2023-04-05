@@ -1,7 +1,7 @@
 {
 	"name": "yeim-uni-sdk",
-	"version": "1.2.0",
-	"description": "可私有化部署的全开源即时通讯uni-app js-sdk，仅需植入 sdk 即可轻松集成聊天能力，支持基于uni-app的任何项目接入使用，满足通信需要。",
+	"version": "1.2.2",
+	"description": "可私有化部署的全开源即时通讯uni-app js-sdk，仅需植入 sdk 即可轻松集成聊天能力，支持Web、uni-app项目接入使用，满足通信需要。",
 	"scripts": {
 		"dev": "rollup -w -c --bundleConfigAsCjs",
 		"build": "rollup -c --bundleConfigAsCjs",

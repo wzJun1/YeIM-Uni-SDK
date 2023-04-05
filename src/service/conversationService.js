@@ -22,7 +22,11 @@ import {
 	Api,
 	request
 } from '../func/request';
-import { getCache, removeCache, setCache } from '../func/storage';
+import {
+	getCache,
+	removeCache,
+	setCache
+} from '../func/storage';
 
 
 /**
@@ -108,7 +112,6 @@ function getConversationList(options) {
  * @return {void}
  */
 function saveCloudConversationListToLocal() {
-
 	request(Api.Conversation.fetchConversationList, 'GET', {
 		page: 1,
 		limit: 999999,

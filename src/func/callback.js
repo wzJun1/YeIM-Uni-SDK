@@ -1,9 +1,9 @@
 /**
  * 格式化成功对象
  */
-function buildSuccessObject(message, data = null) {
+function buildSuccessObject(code = 200, message, data = null) {
 	return {
-		code: 200,
+		code: code,
 		message: message,
 		data: data
 	}
@@ -27,11 +27,12 @@ function buildErrObject(code = 500, message, data = null) {
  * @param {Function} [options.success] - 成功回调 
  * @param {String} message 消息提示
  * @param {Object} data 回调参数
+ * @param {Number} code 状态码
  */
-function successHandle(options, message, data = null) {
+function successHandle(options, message, data = null, code = 200) {
 	try {
 		if (options != null && options.success !== undefined && typeof options.success === "function") {
-			options.success(buildSuccessObject(message, data));
+			options.success(buildSuccessObject(code, message, data));
 		}
 	} catch (e) {
 		console.error(e)

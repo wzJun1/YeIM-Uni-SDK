@@ -82,6 +82,25 @@ let Api = {
 		//撤回消息
 		revokeMessage: '/message/revoke'
 	},
+	//好友相关接口
+	Friend: {
+		//获取好友申请列表
+		fetchList: '/friend/list',
+		//获取好友申请列表
+		fetchApplyList: '/friend/apply/list',
+		//将全部好友申请设置为已读状态
+		setRead: '/friend/apply/set/read',
+		//同意好友申请
+		acceptApply: '/friend/apply/accept',
+		//拒绝好友申请
+		refuseApply: '/friend/apply/refuse',
+		//添加好友
+		addFriend: '/friend/add',
+		//删除好友
+		deleteFriend: '/friend/delete',
+		//更新好友资料
+		updateFriend: '/friend/update'
+	},
 	//推送相关
 	Push: {
 		//APP开启离线推送后，绑定个推clientID

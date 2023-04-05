@@ -9,6 +9,9 @@ YeIMUniSDKDefines.EVENT.CONVERSATION_LIST_CHANGED = "conversation_list_changed";
 YeIMUniSDKDefines.EVENT.MESSAGE_RECEIVED = "message_received"; // 收到消息
 YeIMUniSDKDefines.EVENT.MESSAGE_REVOKED = "message_revoked"; // 撤回消息 
 YeIMUniSDKDefines.EVENT.PRIVATE_READ_RECEIPT = "private_read_receipt"; //私聊会话已读回执
+YeIMUniSDKDefines.EVENT.FRIEND_LIST_CHANGED = "friend_list_changed"; //好友列表变化
+YeIMUniSDKDefines.EVENT.FRIEND_APPLY_LIST_CHANGED = "friend_apply_list_changed"; //好友申请列表变化
+YeIMUniSDKDefines.EVENT.FRIEND_APPLY_REFUSE = "friend_apply_refuse"; //好友申请被拒  
 YeIMUniSDKDefines.EVENT.KICKED_OUT = "kicked_out"; //用户被踢下线
 
 //会话类型
@@ -27,7 +30,18 @@ YeIMUniSDKDefines.MESSAGE_TYPE.LOCATION = 'location'; //位置消息
 YeIMUniSDKDefines.MESSAGE_TYPE.CUSTOM = 'custom'; //自定义消息
 YeIMUniSDKDefines.MESSAGE_TYPE.MERGER = 'merger'; //合并消息
 YeIMUniSDKDefines.MESSAGE_TYPE.FORWARD = 'forward'; //转发消息 
+YeIMUniSDKDefines.MESSAGE_TYPE.SYS_NOTICE = 'sys_notice'; //私聊系统通知  
 YeIMUniSDKDefines.MESSAGE_TYPE.GROUP_SYS_NOTICE = 'group_sys_notice'; //群聊系统通知
+
+
+//用户
+YeIMUniSDKDefines.USER = {};
+
+//加好友验证方式
+YeIMUniSDKDefines.USER.ADDFRIEND = {};
+YeIMUniSDKDefines.USER.ADDFRIEND.ALLOW = 1; //允许任何人添加自己为好友
+YeIMUniSDKDefines.USER.ADDFRIEND.CONFIRM = 2; //需要经过自己确认才能添加自己为好友
+YeIMUniSDKDefines.USER.ADDFRIEND.DENY = 3; //拒绝加好友
 
 //群组
 YeIMUniSDKDefines.GROUP = {};

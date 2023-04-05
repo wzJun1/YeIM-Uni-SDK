@@ -5,6 +5,10 @@ var YeIMUniSDKStatusCode = {
 		code: 200,
 		describe: '接口调用成功' //接口调用成功的统一状态码
 	},
+	APPLY_NEED: {
+		code: 20020,
+		describe: '好友申请已发送，请等待对方处理'
+	},
 	NORMAL_ERROR: {
 		code: 500,
 		describe: '未知错误' //未知错误的统一状态码

@@ -3,7 +3,7 @@
 /** 
  * 
  * YeIM-Uni-SDK
- * 可以私有化部署的全开源即时通讯uni-app js-sdk，仅需集成 SDK 即可轻松实现聊天能力，支持基于uni-app的任何项目接入使用，满足通信需要。
+ * 可以私有化部署的全开源即时通讯js-sdk，仅需集成 SDK 即可轻松实现聊天能力，支持Web或uni-app项目接入使用，满足通信需要。
  * 
  * @author wzJun1
  * @link https://github.com/wzJun1/YeIM-Uni-SDK 
@@ -13,7 +13,9 @@
  * 
  */
 
-import { version } from '../package.json';
+import {
+	version
+} from '../package.json';
 
 import {
 	YeIMUniSDKDefines
@@ -107,6 +109,19 @@ import {
 	createNotificationChannel,
 	bindAppUserPushCID
 } from './service/pushService'
+
+import {
+	acceptApply,
+	addFriend,
+	deleteFriend,
+	getFriendApplyList,
+	getFriendList,
+	handleFriendApplyListChanged,
+	handleFriendListChanged,
+	refuseApply,
+	setApplyListRead,
+	updateFriend
+} from './service/friendService';
 
 /**
  * YeIMUniSDK实例化对象
@@ -331,7 +346,15 @@ class YeIMUniSDK {
 		YeIMUniSDK.prototype.setAdminstrator = setAdminstrator; //设置群管理员
 		YeIMUniSDK.prototype.setMute = setMute; //禁言群成员
 		YeIMUniSDK.prototype.getGroupApplyList = getGroupApplyList; //获取名下群组用户入群申请列表
-		YeIMUniSDK.prototype.handleApply = handleApply; //处理入群申请 
+		YeIMUniSDK.prototype.handleApply = handleApply; //处理入群申请  
+		YeIMUniSDK.prototype.getFriendList = getFriendList; //获取好友列表 
+		YeIMUniSDK.prototype.getFriendApplyList = getFriendApplyList; //获取好友申请列表  
+		YeIMUniSDK.prototype.setApplyListRead = setApplyListRead; //将全部好友申请设置为已读状态  
+		YeIMUniSDK.prototype.acceptApply = acceptApply; //同意好友申请 
+		YeIMUniSDK.prototype.refuseApply = refuseApply; //拒绝好友申请 
+		YeIMUniSDK.prototype.addFriend = addFriend; //添加好友 
+		YeIMUniSDK.prototype.deleteFriend = deleteFriend; //添加好友  
+		YeIMUniSDK.prototype.updateFriend = updateFriend; //更新好友资料   
 		log(1, "============= YeIMUniSDK 初始化成功！版本号：" + instance.version + " =============");
 		return instance;
 	}
@@ -343,7 +366,8 @@ class YeIMUniSDK {
 		if (instance) {
 			return instance;
 		}
-		return null;
+		log(1, "SDK未初始化，无法获取实例化对象");
+		return undefined;
 	}
 
 	/**
@@ -437,8 +461,8 @@ class YeIMUniSDK {
 									title: res.data.title,
 									content: res.data.content,
 									sound: 'system',
-									success: () => { },
-									fail: () => { }
+									success: () => {},
+									fail: () => {}
 								})
 							}
 						}
@@ -617,6 +641,23 @@ class YeIMUniSDK {
 		} else if (data.code == 207) {
 			//收到消息撤回事件 
 			handleMessageRevoked(data.data);
+		} else if (data.code == 208) {
+			//好友列表更新事件  
+			setTimeout(() => {
+				handleFriendListChanged();
+			}, 500);
+		} else if (data.code == 209) {
+			//好友申请列表更新   
+			setTimeout(() => {
+				handleFriendApplyListChanged();
+			}, 500);
+		} else if (data.code == 210) {
+			//好友申请被拒绝 
+			emit(YeIMUniSDKDefines.EVENT.FRIEND_APPLY_REFUSE, data.data);
+			//更新好友申请列表 
+			setTimeout(() => {
+				handleFriendApplyListChanged(1);
+			}, 500);
 		} else if (data.code == 10009) {
 			//被踢下线不允许重连
 			this.allowReconnect = false;
