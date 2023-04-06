@@ -367,7 +367,8 @@ export declare module './yeim-uni-sdk.min.js' {
 		 *
 		 * @param {String} options.toId - 接受者用户ID
 		 * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
-		 * @param {Object|String} options.body - 自定义消息内容 
+		 * @param {Body} options.body - 自定义消息内容 
+		 * @param {String|Object} options.body.custom - 消息内容
 		 * @param {String} options.extra - 自定义扩展数据
 		 * 
 		 * @return {(Object|Message)} Message 消息对象
@@ -376,7 +377,9 @@ export declare module './yeim-uni-sdk.min.js' {
 		createCustomMessage(options: {
 			toId: string,
 			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: string | object,
+			body: {
+				custom: string | object
+			},
 			extra?: string
 		}): Message | Object;
 

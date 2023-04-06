@@ -33,7 +33,10 @@ import {
 import {
 	emit
 } from '../func/event';
-import { getCache, setCache } from '../func/storage';
+import {
+	getCache,
+	setCache
+} from '../func/storage';
 
 
 /**
@@ -668,7 +671,8 @@ function createVideoMessageFromUrl(options) {
  *
  * @param {String} options.toId - 接受者用户ID
  * @param {String} options.conversationType - 会话类型（私聊、群聊）定义在YeIMUniSDKDefines，YeIMUniSDKDefines.CONVERSATION_TYPE.PRIVATE = 私聊，YeIMUniSDKDefines.CONVERSATION_TYPE.GROUP = 群聊
- * @param {Object|String} options.body - 自定义消息内容 
+ * @param {Object} options.body - 自定义消息体
+ * @param {Object|String} options.body.custom - 消息内容
  * 
  * @return {(Object|Message)} Message 消息对象
  *  
@@ -687,15 +691,17 @@ function createCustomMessage(options) {
 		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, 'conversationType 不能为空');
 	}
 
-	if (!options.body) {
-		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, '自定义消息的 body 不能为空');
+	if (!options.body || !options.body.custom) {
+		return buildErrObject(YeIMUniSDKStatusCode.PARAMS_ERROR.code, '自定义消息的 body 和 body.custom 不能为空');
 	}
 
 	let params = {
 		to: options.toId,
 		type: YeIMUniSDKDefines.MESSAGE_TYPE.CUSTOM,
 		conversationType: options.conversationType,
-		body: options.body
+		body: {
+			custom: options.body.custom
+		}
 	};
 	//自定义消息数据
 	if (options.extra) {
@@ -909,7 +915,7 @@ function sendImageMessage(options) {
 
 	//如果原图Url和缩略图Url均为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
 	if ((message.body.originalUrl.includes("http://") || message.body.originalUrl.includes("https://") || message
-		.body.originalUrl.includes("ftp://")) && (message.body.thumbnailUrl.includes("http://") || message.body
+			.body.originalUrl.includes("ftp://")) && (message.body.thumbnailUrl.includes("http://") || message.body
 			.thumbnailUrl.includes("https://") || message.body.thumbnailUrl.includes("ftp://"))) {
 		//直发消息
 		return sendIMMessage(options);
