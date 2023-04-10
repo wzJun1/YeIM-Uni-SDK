@@ -1116,7 +1116,8 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * 
 		 * @param {Options} options - 参数对象
 		 * 
-		 * @param {Number} options.profile - 资料类型，0=简略资料，1=详细资料      
+		 * @param {Boolean} options.cloud - 是否从云端拉取 
+		 * @param {Number} options.profile - 资料类型，0=简略资料，1=详细资料  (云端拉取有效)      
 		 * @param {Number} options.page - 页码      
 		 * @param {Number} options.limit - 每页数量      
 		 * 
@@ -1124,6 +1125,7 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
 		getFriendList(options: {
+			cloud?: boolean,
 			profile?: number,
 			page?: number,
 			limit?: number,
@@ -1137,7 +1139,8 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * 
 		 * @param {Options} options - 参数对象
 		 * 
-		 * @param {Number} options.type - 类型，0=发给我申请，1=我发出去的申请      
+		 * @param {Boolean} options.cloud - 是否从云端拉取 
+		 * @param {Number} options.type - 类型，0=发给我申请，1=我发出去的申请  (云端拉取有效)     
 		 * @param {Number} options.page - 页码      
 		 * @param {Number} options.limit - 每页数量      
 		 * 
@@ -1145,6 +1148,7 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
 		getFriendApplyList(options: {
+			cloud?: boolean,
 			type?: number,
 			page?: number,
 			limit?: number,

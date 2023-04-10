@@ -1211,7 +1211,8 @@ function getHistoryMessageFromCloud(conversationId, nextMessageId = null, limit 
 	return new Promise((resolve, reject) => {
 		request(Api.Message.fetchHistoryMessageList, 'GET', {
 			nextMessageId: (nextMessageId == null || nextMessageId == '') ? null : nextMessageId,
-			conversationId: conversationId
+			conversationId: conversationId,
+			limit: limit
 		}).then((response) => {
 			let result = {};
 			let list = response.records;

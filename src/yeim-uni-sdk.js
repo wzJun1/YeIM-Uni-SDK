@@ -412,6 +412,7 @@ class YeIMUniSDK {
 				clearTimeout(this.connectTimer);
 				this.connectTimer = undefined;
 				return;
+				z
 			}
 			clearTimeout(this.connectTimer);
 			this.connectTimer = undefined;
@@ -435,9 +436,13 @@ class YeIMUniSDK {
 				this.socketLogged = true;
 				this.reConnectNum = 0;
 				log(1, `YeIMServer登陆成功，登陆用户：${options.userId}`)
-				//1.登陆成功后从服务端获取一下全部会话，并发送事件CONVERSATION_LIST_CHANGED
+				//登陆成功后从服务端获取一下全部会话，并发送事件CONVERSATION_LIST_CHANGED
 				saveCloudConversationListToLocal(1, 100000);
-				//2.获取媒体上传参数
+				//登陆成功触发一次好友列表更新事件
+				handleFriendListChanged();
+				//登陆成功触发一次好友申请列表更新事件
+				handleFriendApplyListChanged();
+				//获取媒体上传参数
 				getMediaUploadParams();
 				//如果在uni环境下，执行以下操作
 				if (this.uni) {
@@ -445,11 +450,11 @@ class YeIMUniSDK {
 					if (this.defaults.notification.autoPermission) {
 						setPushPermissions();
 					}
-					//3.2 创建推送渠道
+					//创建推送渠道
 					createNotificationChannel();
-					//3.3 APP用户绑定个推CID到后端，用于离线推送
+					//APP用户绑定个推CID到后端，用于离线推送
 					bindAppUserPushCID();
-					//3.4 监听在线透传消息
+					//监听在线透传消息
 					let uuidList = [];
 					uni.onPushMessage((res) => {
 						//APP在后台，并且没被杀掉的时候，收到透传消息在客户端创建通知提示

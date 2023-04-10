@@ -17,14 +17,19 @@ import {
 	emit
 } from '../func/event';
 import log from '../func/log';
+import {
+	getCache,
+	setCache
+} from '../func/storage';
+import md5 from '../utils/md5';
 
 /**
  * 
  * 从云端获取好友列表
  * 
  * @param {Object} options - 参数对象
- * 
- * @param {Number} options.profile - 资料类型，0=简略资料，1=详细资料      
+ * @param {Boolean} options.cloud - 是否从云端拉取
+ * @param {Number} options.profile - 资料类型，0=简略资料，1=详细资料 (云端拉取有效)     
  * @param {Number} options.page - 页码      
  * @param {Number} options.limit - 每页数量      
  * 
@@ -32,19 +37,36 @@ import log from '../func/log';
  * @param {(error)=>{}} [options.fail] - 失败回调 
  */
 function getFriendList(options) {
-	request(Api.Friend.fetchList, 'GET', {
-		profile: options.profile ? 0 : 1,
-		page: options.page ? options.page : 1,
-		limit: options.limit ? options.limit : 20,
-	}).then((result) => {
-		const {
-			records
-		} = result;
-		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, records);
-	}).catch((fail) => {
-		errHandle(options, fail.code, fail.message);
-		log(1, fail);
-	});
+
+	let key = `yeim:friendList:${md5(instance.userId)}`;
+	let page = options.page ? options.page : 1;
+	let limit = options.limit ? options.limit : 20;
+	if (options.cloud) {
+		//从云端获取好友列表
+		request(Api.Friend.fetchList, 'GET', {
+			profile: options.profile ? 0 : 1,
+			page: page,
+			limit: limit,
+		}).then((result) => {
+			const {
+				records
+			} = result;
+			successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, records);
+		}).catch((fail) => {
+			errHandle(options, fail.code, fail.message);
+			log(1, fail);
+		});
+	} else {
+		//从本地获取好友列表
+
+		//查询本地缓存 
+		let list = getCache(key);
+		list = list ? list : [];
+		let skipNum = (page - 1) * limit;
+		list = (skipNum + limit >= list.length) ? list.slice(skipNum, list.length) : list.slice(skipNum,
+			skipNum + limit);
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, list);
+	}
 }
 
 /**
@@ -55,9 +77,12 @@ function getFriendList(options) {
 function handleFriendListChanged() {
 	//获取最新记录
 	getFriendList({
+		cloud: true,
 		page: 1,
 		limit: 9999999,
 		success: (result) => {
+			let key = `yeim:friendList:${md5(instance.userId)}`;
+			setCache(key, result.data);
 			emit(YeIMUniSDKDefines.EVENT.FRIEND_LIST_CHANGED, result);
 		},
 		fail: () => {
@@ -74,10 +99,21 @@ function handleFriendListChanged() {
 function handleFriendApplyListChanged(type = 0) {
 	//获取最新记录
 	getFriendApplyList({
+		cloud: true,
 		type: type,
 		page: 1,
 		limit: 9999999,
 		success: (result) => {
+			const {
+				data: {
+					records,
+					unread
+				}
+			} = result;
+			let listKey = `yeim:friendApplyList:${md5(instance.userId)}`;
+			let unreadKey = `yeim:friendApplyUnread:${md5(instance.userId)}`;
+			setCache(listKey, records);
+			setCache(unreadKey, unread);
 			emit(YeIMUniSDKDefines.EVENT.FRIEND_APPLY_LIST_CHANGED, result);
 		},
 		fail: () => {
@@ -92,7 +128,8 @@ function handleFriendApplyListChanged(type = 0) {
  * 
  * @param {Object} options - 参数对象
  * 
- * @param {Number} options.type - 类型，0=发给我申请，1=我发出去的申请
+ * @param {Boolean} options.cloud - 是否从云端拉取 
+ * @param {Number} options.type - 类型，0=发给我申请，1=我发出去的申请 (云端拉取有效)     
  * @param {Number} options.page - 页码      
  * @param {Number} options.limit - 每页数量      
  * 
@@ -100,25 +137,48 @@ function handleFriendApplyListChanged(type = 0) {
  * @param {(error)=>{}} [options.fail] - 失败回调 
  */
 function getFriendApplyList(options) {
-	request(Api.Friend.fetchApplyList, 'GET', {
-		type: options.type ? options.type : 0,
-		page: options.page ? options.page : 1,
-		limit: options.limit ? options.limit : 20,
-	}).then((result) => {
-		const {
-			apply: {
-				records
-			},
-			unread
-		} = result;
-		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
-			records,
-			unread
+
+	let listKey = `yeim:friendApplyList:${md5(instance.userId)}`;
+	let unreadKey = `yeim:friendApplyUnread:${md5(instance.userId)}`;
+	let page = options.page ? options.page : 1;
+	let limit = options.limit ? options.limit : 20;
+	if (options.cloud) {
+		//从云端获取好友申请列表
+		request(Api.Friend.fetchApplyList, 'GET', {
+			type: options.type ? options.type : 0,
+			page: page,
+			limit: limit,
+		}).then((result) => {
+			const {
+				apply: {
+					records
+				},
+				unread
+			} = result;
+			successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
+				records,
+				unread
+			});
+		}).catch((fail) => {
+			errHandle(options, fail.code, fail.message);
+			log(1, fail);
 		});
-	}).catch((fail) => {
-		errHandle(options, fail.code, fail.message);
-		log(1, fail);
-	});
+	} else {
+		//从本地获取好友列表
+
+		//查询本地缓存 
+		let list = getCache(listKey);
+		list = list ? list : [];
+		let skipNum = (page - 1) * limit;
+		list = (skipNum + limit >= list.length) ? list.slice(skipNum, list.length) : list.slice(skipNum,
+			skipNum + limit);
+
+		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
+			list,
+			unread: getCache(unreadKey) ? getCache(unreadKey) : 0
+		});
+
+	}
 }
 
 /**
@@ -132,6 +192,8 @@ function getFriendApplyList(options) {
  */
 function setApplyListRead(options) {
 	request(Api.Friend.setRead, 'GET', {}).then(() => {
+		let unreadKey = `yeim:friendApplyUnread:${md5(instance.userId)}`;
+		getCache(unreadKey, 0);
 		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, null);
 	}).catch((fail) => {
 		errHandle(options, fail.code, fail.message);
