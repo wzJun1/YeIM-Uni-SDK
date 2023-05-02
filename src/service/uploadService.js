@@ -262,7 +262,7 @@ function upload(options) {
 			ignoreResult: false,
 			success: (result) => {
 				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
-					url: getVisitURL() + result.url,
+					url: getVisitURL() + result.data.url,
 				})
 			},
 			fail: () => {
@@ -428,7 +428,7 @@ function uploadImage(options) {
 			url: uploadUrl + Api.Upload.image,
 			name: 'file',
 			data: {
-				'key': getUploadFilePath(filename)
+				'key': getUploadFilePath(filename, 'image')
 			},
 			header: {
 				'token': instance.token
@@ -437,10 +437,10 @@ function uploadImage(options) {
 			ignoreResult: false,
 			success: (result) => {
 				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
-					url: getVisitURL() + result.url,
-					thumbnailUrl: getVisitURL() + result.thumbnailUrl,
-					thumbnailWidth: result.thumbnailWidth,
-					thumbnailHeight: result.thumbnailHeight
+					url: getVisitURL() + result.data.url,
+					thumbnailUrl: getVisitURL() + result.data.thumbnailUrl,
+					thumbnailWidth: result.data.thumbnailWidth,
+					thumbnailHeight: result.data.thumbnailHeight
 				})
 			},
 			fail: () => {
@@ -562,7 +562,7 @@ function uploadAudio(options) {
 			ignoreResult: false,
 			success: (result) => {
 				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
-					url: getVisitURL() + result.url,
+					url: getVisitURL() + result.data.url,
 				})
 			},
 			fail: () => {
@@ -721,7 +721,7 @@ function uploadVideo(options) {
 			ignoreResult: false,
 			success: (result) => {
 				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
-					url: getVisitURL() + result.url,
+					url: getVisitURL() + result.data.url,
 				})
 			},
 			fail: () => {

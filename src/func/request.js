@@ -3,7 +3,9 @@
 import {
 	YeIMUniSDKStatusCode
 } from '../const/yeim-status-code';
-import { fetch } from '../utils/fetch';
+import {
+	fetch
+} from '../utils/fetch';
 import queryParams from '../utils/queryParams';
 import {
 	instance
@@ -245,6 +247,8 @@ function upload(options) {
 				result = JSON.parse(result.data);
 				let code = result.code;
 				if (code === YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
+					console.log(111)
+					console.log(result.data)
 					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result.data ?
 						result.data : null)
 				} else {
@@ -282,14 +286,14 @@ function download(options) {
 			} else {
 				errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 					.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-						.code.describe);
+					.code.describe);
 			}
 		},
 		fail: (fail) => {
 			log(1, fail);
 			errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 				.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-					.code.describe);
+				.code.describe);
 		}
 	});
 }

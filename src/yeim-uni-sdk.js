@@ -296,6 +296,9 @@ class YeIMUniSDK {
 	 * @returns YeIMUniSDK实例化对象
 	 */
 	static init(options = {}) {
+		if (typeof uni !== 'undefined' && uni.$YeIMInstance) {
+			instance = uni.$YeIMInstance;
+		}
 		if (instance) {
 			return instance;
 		}
@@ -303,6 +306,9 @@ class YeIMUniSDK {
 			return console.error(YeIMUniSDKStatusCode.SDK_PARAMS_ERROR.describe);
 		}
 		instance = new YeIMUniSDK(options);
+		if (typeof uni !== 'undefined') {
+			uni.$YeIMInstance = instance;
+		}
 		YeIMUniSDK.prototype.createTextMessage = createTextMessage; //创建文字消息
 		YeIMUniSDK.prototype.createTextAtMessage = createTextAtMessage; //创建群聊文字@消息 
 		YeIMUniSDK.prototype.createImageMessage = createImageMessage; //创建图片消息
@@ -363,10 +369,13 @@ class YeIMUniSDK {
 	 * 获取SDK实例化对象
 	 */
 	static getInstance() {
+		if (typeof uni !== 'undefined' && uni.$YeIMInstance) {
+			instance = uni.$YeIMInstance;
+		}
 		if (instance) {
 			return instance;
 		}
-		log(1, "SDK未初始化，无法获取实例化对象");
+		console.error("SDK未初始化，无法获取实例化对象")
 		return undefined;
 	}
 

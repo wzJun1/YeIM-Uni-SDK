@@ -918,7 +918,7 @@ function sendImageMessage(options) {
 			.body.originalUrl.includes("ftp://")) && (message.body.thumbnailUrl.includes("http://") || message.body
 			.thumbnailUrl.includes("https://") || message.body.thumbnailUrl.includes("ftp://"))) {
 		//直发消息
-		return sendIMMessage(options);
+		//return sendIMMessage(options);
 	}
 
 	uploadImage({
@@ -927,6 +927,8 @@ function sendImageMessage(options) {
 		width: message.body.originalWidth,
 		height: message.body.originalHeight,
 		success: (res) => {
+			console.log(666)
+			console.log(res)
 			message.body.originalUrl = res.data.url;
 			message.body.thumbnailWidth = res.data.thumbnailWidth;
 			message.body.thumbnailHeight = res.data.thumbnailHeight;
