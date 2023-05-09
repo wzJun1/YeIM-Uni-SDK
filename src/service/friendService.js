@@ -192,8 +192,6 @@ function getFriendApplyList(options) {
  */
 function setApplyListRead(options) {
 	request(Api.Friend.setRead, 'GET', {}).then(() => {
-		let unreadKey = `yeim:friendApplyUnread:${md5(instance.userId)}`;
-		getCache(unreadKey, 0);
 		successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, null);
 	}).catch((fail) => {
 		errHandle(options, fail.code, fail.message);
