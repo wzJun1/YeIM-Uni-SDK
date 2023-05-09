@@ -26,17 +26,17 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param options.notification - APP离线通知配置
 		 * @returns {YeIMUniSDK} YeIMUniSDK实例化对象
 		 */
-		static init(options: {
+		static init(options : {
 
 			/**
 			 * YeIMServer http url （如无特殊需求，服务端启动后仅需修改ip或者域名即可）
 			 */
-			baseURL: string;
+			baseURL : string;
 
 			/**
 			 * YeIMServer socket url（如无特殊需求，服务端启动后仅需修改ip或者域名即可）
 			 */
-			socketURL: string;
+			socketURL : string;
 			/**
 			 *    SDK 日志等级
 			 *    0 普通日志，日志量较多，接入时建议使用
@@ -44,35 +44,35 @@ export declare module './yeim-uni-sdk.min.js' {
 			 *    2 无日志级别，SDK 将不打印任何日志
 			 */
 
-			logLevel?: number;
+			logLevel ?: number;
 			/**
 			 * socket 重连时间间隔
 			 */
 
-			reConnectInterval?: number;
+			reConnectInterval ?: number;
 
 			/**
 			 * socket 最大重连次数，0不限制一直重连
 			 */
 
-			reConnectTotal?: number;
+			reConnectTotal ?: number;
 
 			/**
 			 * socket 心跳时间间隔(默认30s)
 			 */
-			heartInterval?: number;
+			heartInterval ?: number;
 
 			/**
 			 * APP离线通知配置
 			 */
-			notification?: object;
+			notification ?: object;
 
-		}): YeIMUniSDK;
+		}) : YeIMUniSDK;
 
 		/**
 		 * 获取SDK实例化对象
 		 */
-		static getInstance(): YeIMUniSDK?;
+		static getInstance() : YeIMUniSDK?;
 
 		/**
 		 * 连接登录YeIM
@@ -84,12 +84,12 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>void} [options.fail] - 失败回调 
 		 * @returns {void}
 		 */
-		connect(options: {
-			userId: string,
-			token: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		connect(options : {
+			userId : string,
+			token : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 创建文本消息 
@@ -105,14 +105,14 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createTextMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				text: string
+		createTextMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				text : string
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建群聊 @ 艾特消息 
@@ -129,15 +129,15 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createTextAtMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				text: string,
-				atUserIdList: Array<string>
+		createTextAtMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				text : string,
+				atUserIdList : Array<string>
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建图片消息
@@ -158,18 +158,18 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createImageMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				file: {
-					tempFilePath: string,
-					width: number,
-					height: number
+		createImageMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				file : {
+					tempFilePath : string,
+					width : number,
+					height : number
 				}
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建图片Url直发消息
@@ -192,19 +192,19 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createImageMessageFromUrl(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				originalUrl: string,
-				originalWidth: number,
-				originalHeight: number,
-				thumbnailUrl: string,
-				thumbnailWidth: number,
-				thumbnailHeight: number
+		createImageMessageFromUrl(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				originalUrl : string,
+				originalWidth : number,
+				originalHeight : number,
+				thumbnailUrl : string,
+				thumbnailWidth : number,
+				thumbnailHeight : number
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 
 		/**
@@ -225,17 +225,17 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createAudioMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				file: {
-					tempFilePath: string,
-					duration: number
+		createAudioMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				file : {
+					tempFilePath : string,
+					duration : number
 				}
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建语音Url直发消息
@@ -252,15 +252,15 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createAudioMessageFromUrl(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				tempFilePath: string,
-				duration: number
+		createAudioMessageFromUrl(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				tempFilePath : string,
+				duration : number
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建小视频消息 
@@ -280,19 +280,19 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createVideoMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				file: {
-					tempFilePath: string,
-					duration: number,
-					width: number,
-					height: number
+		createVideoMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				file : {
+					tempFilePath : string,
+					duration : number,
+					width : number,
+					height : number
 				}
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建小视频Url直发消息 
@@ -312,18 +312,18 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createVideoMessageFromUrl(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				videoUrl: string,
-				thumbnailUrl: string,
-				duration: number,
-				width: number,
-				height: number
+		createVideoMessageFromUrl(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				videoUrl : string,
+				thumbnailUrl : string,
+				duration : number,
+				width : number,
+				height : number
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建位置消息 
@@ -344,17 +344,17 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createLocationMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				address: string,
-				description: string,
-				longitude: number,
-				latitude: number
+		createLocationMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				address : string,
+				description : string,
+				longitude : number,
+				latitude : number
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建自定义消息 
@@ -374,14 +374,14 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createCustomMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				custom: string | object
+		createCustomMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				custom : string | object
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建合并消息 
@@ -399,16 +399,16 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createMergerMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				title: string,
-				messageList: Array<T>,
-				summaryList: Array<string>
+		createMergerMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				title : string,
+				messageList : Array<T>,
+				summaryList : Array<string>
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 * 创建转发消息 
@@ -424,14 +424,14 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @return {(Object|Message)} Message 消息对象
 		 *  
 		 */
-		createForwardMessage(options: {
-			toId: string,
-			conversationType: YeIMUniSDKDefines.CONVERSATION_TYPE,
-			body: {
-				message: Message | object,
+		createForwardMessage(options : {
+			toId : string,
+			conversationType : YeIMUniSDKDefines.CONVERSATION_TYPE,
+			body : {
+				message : Message | object,
 			},
-			extra?: string
-		}): Message | Object;
+			extra ?: string
+		}) : Message | Object;
 
 		/**
 		 *
@@ -445,12 +445,12 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(progress)=>void} [options.onProgress] - 上传进度回调
 		 * 
 		 */
-		upload(options: {
-			filename: string,
-			filepath: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		upload(options : {
+			filename : string,
+			filepath : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -467,13 +467,13 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>void} options.fail - 失败回调 
 		 * 
 		 */
-		getHistoryMessageList(options: {
-			nextMessageId?: string,
-			conversationId: string,
-			limit?: number,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getHistoryMessageList(options : {
+			nextMessageId ?: string,
+			conversationId : string,
+			limit ?: number,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *   
@@ -486,11 +486,11 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>void} options.fail - 失败回调 
 		 * 
 		 */
-		deleteMessage(options: {
-			message: Message | object,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		deleteMessage(options : {
+			message : Message | object,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *   
@@ -503,11 +503,11 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>void} options.fail - 失败回调 
 		 * 
 		 */
-		revokeMessage(options: {
-			message: Message | object,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		revokeMessage(options : {
+			message : Message | object,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 根据会话ID获取本地会话详情
@@ -515,7 +515,7 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {String} conversationId - 会话ID
 		 * @return {Conversation} conversation
 		 */
-		getConversation(conversationId: string): Conversation | object;
+		getConversation(conversationId : string) : Conversation | object;
 
 		/**
 		 * 获取本地会话列表
@@ -527,12 +527,12 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调  
 		 */
-		getConversationList(options: {
-			page: number,
-			limit: number,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getConversationList(options : {
+			page : number,
+			limit : number,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 根据会话ID删除会话和聊天记录（包括云端）
@@ -540,7 +540,7 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {Object} conversationId
 		 * @return {void}
 		 */
-		deleteConversation(conversationId: string): void;
+		deleteConversation(conversationId : string) : void;
 
 		/**
 		 * 清除指定会话未读数
@@ -550,7 +550,7 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {String} conversationId - 会话ID
 		 * @return {void}
 		 */
-		clearConversationUnread(conversationId: string): void;
+		clearConversationUnread(conversationId : string) : void;
 
 		/**
 		 *  
@@ -569,11 +569,11 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		sendMessage(options: {
-			message: Message | Object | undefined,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		sendMessage(options : {
+			message : Message | Object | undefined,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -586,11 +586,11 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>void} [options.fail] - 失败回调 
 		 * 
 		 */
-		getUserInfo(options: {
-			userId: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getUserInfo(options : {
+			userId : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -606,22 +606,24 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {String} options.birthday - 生日
 		 * @param {String} options.motto - 个性签名
 		 * @param {String} options.extend - 用户自定义扩展字段 
+		 * @param {Number} options.addFriendType - 好友添加我的方式
 		 * @param {(result)=>void} [options.success] - 成功回调
 		 * @param {(error)=>void} [options.fail] - 失败回调 
 		 * 
 		 */
-		updateUserInfo(options: {
-			nickname?: string,
-			avatarUrl?: string,
-			gender?: number,
-			mobile?: number,
-			email?: string,
-			birthday?: string,
-			motto?: string,
-			extend?: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		updateUserInfo(options : {
+			nickname ?: string,
+			avatarUrl ?: string,
+			gender ?: number,
+			mobile ?: number,
+			email ?: string,
+			birthday ?: string,
+			motto ?: string,
+			extend ?: string,
+			addFriendType ?: YeIMUniSDKDefines.USER.ADDFRIEND,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -633,10 +635,10 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(error)=>void} [options.fail] - 失败回调 
 		 * 
 		 */
-		getBlackUserList(options: {
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getBlackUserList(options : {
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		*  
@@ -657,11 +659,11 @@ export declare module './yeim-uni-sdk.min.js' {
 			fail: (error) => {}
 		});
 		*/
-		addToBlackUserList(options: {
-			members: Array<string>
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		addToBlackUserList(options : {
+			members : Array<string>
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		*  
@@ -682,25 +684,25 @@ export declare module './yeim-uni-sdk.min.js' {
 			fail: (error) => {}
 		});
 		*/
-		removeFromBlacklist(options: {
-			members: Array<string>
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		removeFromBlacklist(options : {
+			members : Array<string>
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 添加IM事件监听器
 		 * @param {Object} event - 事件类型 YeIMUniSDKDefines.EVENT
 		 * @param {(result)=>void} callback 监听回调方法
 		 */
-		addEventListener(event: string, callback: (result: any) => void);
+		addEventListener(event : string, callback : (result : any) => void);
 
 		/**
 		 * 移除IM事件监听器
 		 * @param {Object} event - 事件类型 YeIMUniSDKDefines.EVENT
 		 * @param {(result)=>void} callback 监听回调方法
 		 */
-		removeEventListener(event: string, callback: (result: any) => void);
+		removeEventListener(event : string, callback : (result : any) => void);
 
 		/**
 		 *  
@@ -726,17 +728,17 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		createGroup(options: {
-			name: string,
-			avatarUrl: string,
-			groupId?: string,
-			joinMode?: number,
-			introduction?: string,
-			notification?: string,
-			members?: Array<string>,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		createGroup(options : {
+			name : string,
+			avatarUrl : string,
+			groupId ?: string,
+			joinMode ?: number,
+			introduction ?: string,
+			notification ?: string,
+			members ?: Array<string>,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -757,11 +759,11 @@ export declare module './yeim-uni-sdk.min.js' {
 			   fail: (error) => {}
 		   });
 		 */
-		dissolveGroup(options: {
-			groupId: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		dissolveGroup(options : {
+			groupId : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -788,17 +790,17 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		updateGroup(options: {
-			groupId: string,
-			name?: string,
-			avatarUrl?: string,
-			joinMode?: number,
-			introduction?: string,
-			notification?: string,
-			members?: Array<string>,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		updateGroup(options : {
+			groupId : string,
+			name ?: string,
+			avatarUrl ?: string,
+			joinMode ?: number,
+			introduction ?: string,
+			notification ?: string,
+			members ?: Array<string>,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -817,11 +819,11 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		getGroup(options: {
-			groupId: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getGroup(options : {
+			groupId : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -844,12 +846,12 @@ export declare module './yeim-uni-sdk.min.js' {
 			   fail: (error) => {}
 		   });
 		 */
-		transferLeader(options: {
-			groupId: string,
-			userId: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		transferLeader(options : {
+			groupId : string,
+			userId : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -866,10 +868,10 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		getGroupList(options: {
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getGroupList(options : {
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -890,11 +892,11 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		joinGroup(options: {
-			groupId: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		joinGroup(options : {
+			groupId : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -913,11 +915,11 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		leaveGroup(options: {
-			groupId: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		leaveGroup(options : {
+			groupId : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -940,12 +942,12 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		addGroupUsers(options: {
-			groupId: string,
-			members: Array<string>,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		addGroupUsers(options : {
+			groupId : string,
+			members : Array<string>,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -968,12 +970,12 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		removeGroupUsers(options: {
-			groupId: string,
-			members: Array<string>,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		removeGroupUsers(options : {
+			groupId : string,
+			members : Array<string>,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -998,13 +1000,13 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		setAdminstrator(options: {
-			groupId: string,
-			userId: string,
-			isAdmin: number,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		setAdminstrator(options : {
+			groupId : string,
+			userId : string,
+			isAdmin : number,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -1029,13 +1031,13 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		setMute(options: {
-			groupId: string,
-			userId: string,
-			time: number,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		setMute(options : {
+			groupId : string,
+			userId : string,
+			time : number,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -1054,10 +1056,10 @@ export declare module './yeim-uni-sdk.min.js' {
 			   fail: (error) => {}
 		   });
 		 */
-		getGroupApplyList(options: {
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getGroupApplyList(options : {
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -1080,12 +1082,12 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		handleApply(options: {
-			id: number,
-			status: number
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		handleApply(options : {
+			id : number,
+			status : number
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 *  
@@ -1104,11 +1106,11 @@ export declare module './yeim-uni-sdk.min.js' {
 			 fail: (error) => {}
 		});
 		*/
-		getGroupUserList(options: {
-			groupId: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getGroupUserList(options : {
+			groupId : string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1124,14 +1126,14 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		getFriendList(options: {
-			cloud?: boolean,
-			profile?: number,
-			page?: number,
-			limit?: number,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getFriendList(options : {
+			cloud ?: boolean,
+			profile ?: number,
+			page ?: number,
+			limit ?: number,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1147,14 +1149,14 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		getFriendApplyList(options: {
-			cloud?: boolean,
-			type?: number,
-			page?: number,
-			limit?: number,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		getFriendApplyList(options : {
+			cloud ?: boolean,
+			type ?: number,
+			page ?: number,
+			limit ?: number,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1165,10 +1167,10 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		setApplyListRead(options: {
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		setApplyListRead(options : {
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1183,13 +1185,13 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		addFriend(options: {
-			userId: string,
-			remark?: string,
-			extraMessage?: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		addFriend(options : {
+			userId : string,
+			remark ?: string,
+			extraMessage ?: string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1202,11 +1204,11 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		deleteFriend(options: {
-			members: Array<string>,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		deleteFriend(options : {
+			members : Array<string>,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1221,13 +1223,13 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		updateFriend(options: {
-			userId: string,
-			remark?: string,
-			extend?: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		updateFriend(options : {
+			userId : string,
+			remark ?: string,
+			extend ?: string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1241,12 +1243,12 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		acceptApply(options: {
-			id: number,
-			remark?: string,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		acceptApply(options : {
+			id : number,
+			remark ?: string,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		 * 
@@ -1259,16 +1261,16 @@ export declare module './yeim-uni-sdk.min.js' {
 		 * @param {(result)=>{}} [options.success] - 成功回调
 		 * @param {(error)=>{}} [options.fail] - 失败回调 
 		 */
-		refuseApply(options: {
-			id: number,
-			success?: (result: any) => void,
-			fail?: (error: any) => void
-		}): void;
+		refuseApply(options : {
+			id : number,
+			success ?: (result : any) => void,
+			fail ?: (error : any) => void
+		}) : void;
 
 		/**
 		* 断开连接，此操作不会重连
 		*/
-		disConnect(): void;
+		disConnect() : void;
 
 		/**
 		* 获取当前连接状态
@@ -1276,17 +1278,17 @@ export declare module './yeim-uni-sdk.min.js' {
 		* 0：连接中 1：连接已打开 2：连接关闭中 3：连接已关闭 
 		* @returns {number}
 		*/
-		readyState(): number;
+		readyState() : number;
 
 		/**
 		 * 设置APP在前台
 		 */
-		intoApp(): void;
+		intoApp() : void;
 
 		/**
 		 * 设置APP已进入后台
 		 */
-		leaveApp(): void;
+		leaveApp() : void;
 
 	}
 
