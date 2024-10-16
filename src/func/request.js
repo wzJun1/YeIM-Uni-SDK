@@ -215,6 +215,7 @@ function request(url, method = 'GET', data = null) {
 	});
 }
 
+
 /**
  * 公共上传
  * 
@@ -232,39 +233,67 @@ function request(url, method = 'GET', data = null) {
  *  
  */
 function upload(options) {
-	return uni.uploadFile({
-		url: options.url,
-		name: options.name,
-		formData: options.data,
-		header: options.header,
-		filePath: options.filePath,
-		success: (result) => {
-			//忽略结果
-			if (options.ignoreResult) {
-				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe)
-			} else {
-				if (result.data == null) reject(null);
-				result = JSON.parse(result.data);
-				let code = result.code;
-				if (code === YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
-					console.log(111)
-					console.log(result.data)
-					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result.data ?
-						result.data : null)
+	if (instance.uni) {
+		return uni.uploadFile({
+			url: options.url,
+			name: options.name,
+			formData: options.data,
+			header: options.header,
+			filePath: options.filePath,
+			success: (result) => {
+				//忽略结果
+				if (options.ignoreResult) {
+					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe)
 				} else {
-					errHandle(options, code, result.message);
+					if (result.data == null) reject(null);
+					result = JSON.parse(result.data);
+					let code = result.code;
+					if (code === YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
+						successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, result.data ?
+							result.data : null)
+					} else {
+						errHandle(options, code, result.message);
+					}
 				}
+			},
+			fail: (fail) => {
+				log(1, fail);
+				errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, fail);
 			}
-		},
-		fail: (fail) => {
+		});
+	} else {
+		const formdata = new FormData()
+		formdata.append('file', options.filePath)
+		for (let key in options.data) {
+			formdata.append(key, options.data[key])
+		}
+		fetch(options.url, {
+			method: 'POST',
+			body: formdata,
+			headers: options.header
+		}).then(async res => {
+			if (res.ok) {
+				let json = await res.json();
+				if (json.code == YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
+					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, json.data ?
+						json.data : null)
+				} else {
+					log(1, json.message);
+					errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, json.message);
+				}
+			} else {
+				log(1, 'network error');
+				errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, 'network error');
+			}
+		}).then(fail => {
 			log(1, fail);
 			errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, fail);
-		}
-	});
+		})
+	}
 }
 
 /**
- * 公共上传
+ * 公共下载
  * 
  * @param {Object} options - 请求参数
  * @param {String} options.url - 请求的下载地址 
@@ -276,26 +305,43 @@ function upload(options) {
  *  
  */
 function download(options) {
-	return uni.downloadFile({
-		url: options.url,
-		header: options.header,
-		success: (downloadRes) => {
-			if (downloadRes.statusCode === 200) {
-				successHandle(options, YeIMUniSDKStatusCode
-					.NORMAL_SUCCESS.describe, downloadRes.tempFilePath)
-			} else {
+	if (instance.uni) {
+		return uni.downloadFile({
+			url: options.url,
+			header: options.header,
+			success: (downloadRes) => {
+				if (downloadRes.statusCode === 200) {
+					successHandle(options, YeIMUniSDKStatusCode
+						.NORMAL_SUCCESS.describe, downloadRes.tempFilePath)
+				} else {
+					errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
+						.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
+							.code.describe);
+				}
+			},
+			fail: (fail) => {
+				log(1, fail);
 				errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 					.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-					.code.describe);
+						.code.describe);
 			}
-		},
-		fail: (fail) => {
-			log(1, fail);
-			errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-				.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-				.code.describe);
-		}
-	});
+		});
+	} else {
+		return fetch(options.url, {
+			header: options.header,
+		})
+			.then(response => response.blob())
+			.then(blob => {
+				var file = new File([blob], options.filename ? options.filename : '1.jpg');
+				successHandle(options, YeIMUniSDKStatusCode
+					.NORMAL_SUCCESS.describe, file)
+			}).catch(error => {
+				log(1, fail);
+				errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
+					.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
+						.code.describe);
+			});
+	}
 }
 
 export {
