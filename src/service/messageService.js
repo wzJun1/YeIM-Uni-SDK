@@ -1101,12 +1101,45 @@ function getHistoryMessageList(options) {
 		limit = options.limit;
 	}
 
+	//先查询本地消息
+	let cacheList = getMessageListFromLocal(options.conversationId);
+
+	//检查是否需要从云端对齐
+	let cloud = false;
+	if (!options.nextMessageId) {
+		let key = `yeim:conversationList:${md5(instance.userId)}`;
+		let result = getCache(key);
+		result = result ? result : [];
+		let index = result.findIndex(item => {
+			return item.conversationId === options.conversationId;
+		});
+		if (index > -1 && cacheList.length > 0) {
+			let conversation = result[index];
+			let lastLocalMessage = cacheList[cacheList.length - 1];
+			//如果本地最新消息和会话保存的最新消息不一致则从云端对齐
+			if (conversation.lastMessage.messageId && conversation.lastMessage.messageId != lastLocalMessage
+				.messageId) {
+				cloud = true;
+			}
+		}
+	}
+	
+	//云端对齐
+	if (cloud) {
+		getHistoryMessageFromCloud(options.conversationId, null, 20)
+			.then((map) => { 
+				let list = map.list;
+				let key = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(options.conversationId)}`;
+				setCache(key, list); 
+				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, map);
+			}).catch((err) => {
+				errHandle(options, err.code, err.message);
+			});
+	}
 	//判断是否存在上一次拉取的最后一条消息.
 	//如果传入nextMessageId，则从此消息ID开始倒序查询消息记录，否则从最新一条开始查询  
-	if (!options.nextMessageId) {
-		//先查询本地消息
-		let cacheList = getMessageListFromLocal(options.conversationId);
-		//如果小于limit条，再从云端查询一次，同步本地记录
+	else if (!options.nextMessageId) {
+		//如果小于limit条，再从云端查询一次，同步本地记录 
 		if (cacheList.length < limit) {
 			let diff = limit - cacheList.length;
 			let nextMessageId = null;
@@ -1139,11 +1172,12 @@ function getHistoryMessageList(options) {
 				nextMessageId: cacheList[0].messageId
 			});
 		}
-	} else {
-		//传入了nextMessageId，从此消息ID开始倒序查询消息记录
+	}
+	//传入了nextMessageId，从此消息ID开始倒序查询消息记录
+	else {
+
 		let nextMessageId = options.nextMessageId;
-		//先从本地查，如果本地没有，直接从云端查
-		let cacheList = getMessageListFromLocal(options.conversationId);
+
 		//是否在本地
 		let index = cacheList.findIndex(item => {
 			return item.messageId === nextMessageId
