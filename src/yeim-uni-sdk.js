@@ -8,7 +8,7 @@
  * @author wzJun1
  * @link https://github.com/wzJun1/YeIM-Uni-SDK 
  * @doc https://wzjun1.netlify.app/ye_plugins/sdk/yeimunisdk
- * @copyright wzJun1 2022, 2023. All rights reserved.
+ * @copyright wzJun1 2022, 2024. All rights reserved.
  * @license Apache-2.0
  * 
  */
