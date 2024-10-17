@@ -912,13 +912,14 @@ function sendIMMessage(options) {
  */
 function sendImageMessage(options) {
 	let message = options.message;
-
-	//如果原图Url和缩略图Url均为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
-	if ((message.body.originalUrl.includes("http://") || message.body.originalUrl.includes("https://") || message
-			.body.originalUrl.includes("ftp://")) && (message.body.thumbnailUrl.includes("http://") || message.body
-			.thumbnailUrl.includes("https://") || message.body.thumbnailUrl.includes("ftp://"))) {
-		//直发消息
-		//return sendIMMessage(options);
+	if (typeof message.body.originalUrl == 'string') {
+		//如果原图Url和缩略图Url均为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
+		if ((message.body.originalUrl.includes("http://") || message.body.originalUrl.includes("https://") || message
+				.body.originalUrl.includes("ftp://")) && (message.body.thumbnailUrl.includes("http://") || message.body
+				.thumbnailUrl.includes("https://") || message.body.thumbnailUrl.includes("ftp://"))) {
+			//直发消息
+			return sendIMMessage(options);
+		}
 	}
 
 	uploadImage({
@@ -965,12 +966,13 @@ function sendAudioMessage(options) {
 	let message = options.message;
 
 	//如果音频Url为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
-	if (message.body.audioUrl.includes("http://") || message.body.audioUrl.includes("https://") || message
-		.body.audioUrl.includes("ftp://")) {
-		//直发消息
-		return sendIMMessage(options);
+	if (typeof message.body.audioUrl == 'string') {
+		if (message.body.audioUrl.includes("http://") || message.body.audioUrl.includes("https://") || message
+			.body.audioUrl.includes("ftp://")) {
+			//直发消息
+			return sendIMMessage(options);
+		}
 	}
-
 	uploadAudio({
 		filename: instance.token + '_audio.aac',
 		filepath: message.body.audioUrl,
@@ -1009,12 +1011,13 @@ function sendVideoMessage(options) {
 	let message = options.message;
 
 	//如果视频Url为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
-	if (message.body.videoUrl.includes("http://") || message.body.videoUrl.includes("https://") || message
-		.body.videoUrl.includes("ftp://")) {
-		//直发消息
-		return sendIMMessage(options);
+	if (typeof message.body.videoUrl == 'string') {
+		if (message.body.videoUrl.includes("http://") || message.body.videoUrl.includes("https://") || message
+			.body.videoUrl.includes("ftp://")) {
+			//直发消息
+			return sendIMMessage(options);
+		}
 	}
-
 	uploadVideo({
 		filename: instance.token + '_video.mp4',
 		filepath: message.body.videoUrl,
