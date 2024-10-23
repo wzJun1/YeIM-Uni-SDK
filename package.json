@@ -1,6 +1,6 @@
 {
 	"name": "yeim-uni-sdk",
-	"version": "1.2.7",
+	"version": "1.2.8",
 	"description": "可私有化部署的全开源即时通讯uni-app js-sdk，仅需植入 sdk 即可轻松集成聊天能力，支持Web、uni-app项目接入使用，满足通信需要。",
 	"scripts": {
 		"dev": "rollup -w -c --bundleConfigAsCjs",
@@ -10,6 +10,8 @@
 	"author": "wzjun1",
 	"license": "Apache-2.0",
 	"types": "src/yeim-uni-sdk.min.d.ts",
+	"main": "dist/yeim-uni-sdk.min.js",
+	"module": "dist/yeim-uni-sdk.min.js",
 	"devDependencies": {
 		"@babel/core": "^7.21.3",
 		"@babel/plugin-transform-runtime": "^7.21.0",
