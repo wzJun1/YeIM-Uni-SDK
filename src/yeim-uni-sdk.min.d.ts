@@ -1303,6 +1303,7 @@ export declare module './yeim-uni-sdk.min.js' {
 	/**
 	 * YeIMUniSDK预定义常量
 	 */
+	// @ts-ignore
 	declare const YeIMUniSDKDefines = {
 		/**
 		 * 事件类型
