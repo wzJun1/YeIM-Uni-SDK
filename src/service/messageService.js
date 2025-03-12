@@ -18,6 +18,11 @@ import {
 	errHandle
 } from '../func/callback';
 
+
+import {
+	isHttpURL
+} from '../func/common';
+
 import md5 from '../utils/md5';
 
 import formatMessage from '../func/formatMessage';
@@ -31,7 +36,7 @@ import {
 	YeIMUniSDKStatusCode
 } from '../const/yeim-status-code';
 import {
-	emit
+	emit 
 } from '../func/event';
 import {
 	getCache,
@@ -913,10 +918,8 @@ function sendIMMessage(options) {
 function sendImageMessage(options) {
 	let message = options.message;
 	if (typeof message.body.originalUrl == 'string') {
-		//如果原图Url和缩略图Url均为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
-		if ((message.body.originalUrl.includes("http://") || message.body.originalUrl.includes("https://") || message
-				.body.originalUrl.includes("ftp://")) && (message.body.thumbnailUrl.includes("http://") || message.body
-				.thumbnailUrl.includes("https://") || message.body.thumbnailUrl.includes("ftp://"))) {
+		//如果原图Url和缩略图Url均为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。 
+		if (isHttpURL(message.body.originalUrl) && isHttpURL(message.body.thumbnailUrl)) {
 			//直发消息
 			return sendIMMessage(options);
 		}
@@ -928,8 +931,6 @@ function sendImageMessage(options) {
 		width: message.body.originalWidth,
 		height: message.body.originalHeight,
 		success: (res) => {
-			console.log(666)
-			console.log(res)
 			message.body.originalUrl = res.data.url;
 			message.body.thumbnailWidth = res.data.thumbnailWidth;
 			message.body.thumbnailHeight = res.data.thumbnailHeight;
@@ -967,8 +968,7 @@ function sendAudioMessage(options) {
 
 	//如果音频Url为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
 	if (typeof message.body.audioUrl == 'string') {
-		if (message.body.audioUrl.includes("http://") || message.body.audioUrl.includes("https://") || message
-			.body.audioUrl.includes("ftp://")) {
+		if (isHttpURL(message.body.audioUrl)) {
 			//直发消息
 			return sendIMMessage(options);
 		}
@@ -1012,8 +1012,7 @@ function sendVideoMessage(options) {
 
 	//如果视频Url为网络图片，则我们认为此媒体消息为直发消息，不进行上传处理。
 	if (typeof message.body.videoUrl == 'string') {
-		if (message.body.videoUrl.includes("http://") || message.body.videoUrl.includes("https://") || message
-			.body.videoUrl.includes("ftp://")) {
+		if (isHttpURL(message.body.videoUrl)) {
 			//直发消息
 			return sendIMMessage(options);
 		}
@@ -1022,6 +1021,9 @@ function sendVideoMessage(options) {
 		filename: instance.token + '_video.mp4',
 		filepath: message.body.videoUrl,
 		success: (res) => {
+			console.log(uploadVideo)
+			console.log(res)
+
 			let videoUrl = res.data.videoUrl;
 			let thumbnailUrl = res.data.thumbnailUrl;
 			message.body.videoUrl = videoUrl;
@@ -1126,14 +1128,14 @@ function getHistoryMessageList(options) {
 			}
 		}
 	}
-	
+
 	//云端对齐
 	if (cloud) {
 		getHistoryMessageFromCloud(options.conversationId, null, 20)
-			.then((map) => { 
+			.then((map) => {
 				let list = map.list;
 				let key = `yeim:messageList:${md5(instance.userId)}:conversationId:${md5(options.conversationId)}`;
-				setCache(key, list); 
+				setCache(key, list);
 				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, map);
 			}).catch((err) => {
 				errHandle(options, err.code, err.message);

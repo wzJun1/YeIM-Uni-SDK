@@ -720,8 +720,9 @@ function uploadVideo(options) {
 			filePath: options.filepath,
 			ignoreResult: false,
 			success: (result) => {
-				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, {
-					url: getVisitURL() + result.data.url,
+				successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, { 
+					videoUrl: getVisitURL() + result.data.url,
+					thumbnailUrl: getVisitURL() + result.data.thumbnailUrl
 				})
 			},
 			fail: () => {

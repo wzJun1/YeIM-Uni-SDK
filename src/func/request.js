@@ -8,6 +8,9 @@ import {
 } from '../utils/fetch';
 import queryParams from '../utils/queryParams';
 import {
+	isBlobURL
+} from '../func/common.js';
+import {
 	instance
 } from '../yeim-uni-sdk';
 import {
@@ -262,33 +265,44 @@ function upload(options) {
 			}
 		});
 	} else {
-		const formdata = new FormData()
-		formdata.append('file', options.filePath)
-		for (let key in options.data) {
-			formdata.append(key, options.data[key])
-		}
-		fetch(options.url, {
-			method: 'POST',
-			body: formdata,
-			headers: options.header
-		}).then(async res => {
-			if (res.ok) {
-				let json = await res.json();
-				if (json.code == YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
-					successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe, json.data ?
-						json.data : null)
-				} else {
-					log(1, json.message);
-					errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, json.message);
-				}
-			} else {
-				log(1, 'network error');
-				errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, 'network error');
+		return new Promise(async (resolve, reject) => {
+			const formdata = new FormData()
+			for (let key in options.data) {
+				formdata.append(key, options.data[key])
 			}
-		}).then(fail => {
-			log(1, fail);
-			errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, fail);
-		})
+			if (isBlobURL(options.filePath)) {
+				const blobResp = await fetch(blobUrl);
+				const blob = await blobResp.blob();
+				formData.append('file', blob);
+			} else {
+				formdata.append('file', options.filePath)
+			}
+
+			fetch(options.url, {
+				method: 'POST',
+				body: formdata,
+				headers: options.header
+			}).then(async res => {
+				if (res.ok) {
+					let json = await res.json();
+					if (json.code == YeIMUniSDKStatusCode.NORMAL_SUCCESS.code) {
+						successHandle(options, YeIMUniSDKStatusCode.NORMAL_SUCCESS.describe,
+							json.data ?
+							json.data : null)
+					} else {
+						log(1, json.message);
+						errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, json
+							.message);
+					}
+				} else {
+					log(1, 'network error');
+					errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, 'network error');
+				}
+			}).then(fail => {
+				log(1, fail);
+				errHandle(options, YeIMUniSDKStatusCode.NORMAL_ERROR.code, fail);
+			})
+		});
 	}
 }
 
@@ -316,20 +330,20 @@ function download(options) {
 				} else {
 					errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 						.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-							.code.describe);
+						.code.describe);
 				}
 			},
 			fail: (fail) => {
 				log(1, fail);
 				errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 					.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-						.code.describe);
+					.code.describe);
 			}
 		});
 	} else {
 		return fetch(options.url, {
-			header: options.header,
-		})
+				header: options.header,
+			})
 			.then(response => response.blob())
 			.then(blob => {
 				var file = new File([blob], options.filename ? options.filename : '1.jpg');
@@ -339,7 +353,7 @@ function download(options) {
 				log(1, fail);
 				errHandle(options, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
 					.code, YeIMUniSDKStatusCode.DOWNLOAD_ERROR
-						.code.describe);
+					.code.describe);
 			});
 	}
 }
